@@ -18,9 +18,15 @@ public class BackendApiApplication {
 		return new WebMvcConfigurer() {
 			@Override
 			public void addCorsMappings(CorsRegistry registry) {
-				registry.addMapping("/account/**").allowedOrigins("http://localhost:3000");
-				registry.addMapping("/availability/**").allowedOrigins("http://localhost:3000");
-				registry.addMapping("/booking/**").allowedOrigins("http://localhost:3000");
+				registry.addMapping("/account/**").allowedOrigins(
+					"http://localhost:3000",
+					"https://client-coliv-demo.herokuapp.com");
+				registry.addMapping("/availability/**").allowedOrigins(
+					"http://localhost:3000",
+					"https://client-coliv-demo.herokuapp.com");
+				registry.addMapping("/booking/**").allowedOrigins(
+					"http://localhost:3000",
+					"https://client-coliv-demo.herokuapp.com");
 			}
 		};
 	}
