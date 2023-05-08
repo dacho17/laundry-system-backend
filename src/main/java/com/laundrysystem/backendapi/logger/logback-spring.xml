@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+	<property name="LOGS" value="./logs" />
+
+	<appender name="CONSOLE"
+		class="ch.qos.logback.core.ConsoleAppender">
+		<layout class="ch.qos.logback.classic.PatternLayout">
+			<!-- %logger{36} can be used to output the className in which the logger 
+				is -->
+			<Pattern>%d{HH:mm:ss.SSS} [%-5level] [%thread] msg={ %msg }%n</Pattern>
+		</layout>
+	</appender>
+
+	<appender name="FILE"
+		class="ch.qos.logback.core.rolling.RollingFileAppender">
+		<file>${LOGS}/main.log</file>
+
+		<encoder
+			class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+			<!-- %C{1.} can be used to output the className in which the logger is -->
+			<Pattern>%d [%p] [%t] msg={ %m }%n</Pattern>
+		</encoder>
+
+		<rollingPolicy
+			class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+			<!-- OPTION: built in support for compressing files => .gz extension -->
+			<!-- OPTION: rollover daily and when the file reaches 10 MegaBytes -->
+			<!-- OPTION: keep 90 days' worth of logs capped at 5GB total size -->
+			
+			<fileNamePattern>${LOGS}/%d{yyyy-MM-dd}.%i.gz</fileNamePattern>
+			
+			<timeBasedFileNamingAndTriggeringPolicy
+				class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
+				<maxFileSize>10MB</maxFileSize>
+			</timeBasedFileNamingAndTriggeringPolicy>
+	
+			<maxHistory>90</maxHistory>
+			<totalSizeCap>5GB</totalSizeCap>
+		</rollingPolicy>
+	</appender>
+
+	<root level="info">
+		<appender-ref ref="CONSOLE" />
+		<appender-ref ref="FILE" />
+	</root>
+</configuration>

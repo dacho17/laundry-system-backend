@@ -1,0 +1,140 @@
+package com.laundrysystem.backendapi.mappers;
+
+import java.sql.Timestamp;
+import java.util.Optional;
+
+import com.laundrysystem.backendapi.dtos.ResidenceAdminDto;
+import com.laundrysystem.backendapi.dtos.ResidenceAdminRegForm;
+import com.laundrysystem.backendapi.dtos.TenantDto;
+import com.laundrysystem.backendapi.dtos.TenantRegForm;
+import com.laundrysystem.backendapi.dtos.UpdateUserInfoForm;
+import com.laundrysystem.backendapi.dtos.UserDto;
+import com.laundrysystem.backendapi.entities.Residence;
+import com.laundrysystem.backendapi.entities.User;
+import com.laundrysystem.backendapi.entities.UserResidence;
+import com.laundrysystem.backendapi.enums.UserRole;
+import com.laundrysystem.backendapi.utils.Formatting;
+
+public class UserMapper {
+
+	public static UpdateUserInfoForm toUserInfoForm(User user) {
+		return new UpdateUserInfoForm(
+			user.getUsername(),
+			user.getEmail(),
+			user.getMobileNumber()
+		);
+	}
+	
+	public static UserDto toDto(User user) {
+		return new UserDto(
+			user.getUsername(),
+			UserRole.getRole(user.getRole()),
+			user.getJwt()
+		);
+	}
+	
+	public static TenantDto userToTenantDto(User user) {
+		UserResidence usrRes = getCurrentUserResidence(user);
+		long curTs = Formatting.getCurTimestamp().getTime();
+		return new TenantDto(
+			user.getName(),
+			user.getSurname(),
+			user.getUsername(),
+			usrRes.getTenancyStart(),
+			usrRes.getTenancyEnd(),
+			usrRes.getTenancyStart().getTime() <= curTs && curTs <= usrRes.getTenancyEnd().getTime(),
+			user.getEmail(),
+			user.getMobileNumber()
+		);
+	}
+	
+	public static ResidenceAdminDto userToResidenceAdminDto(User user) {
+		return new ResidenceAdminDto(
+			user.getUsername(),
+			user.getName(),
+			user.getSurname(),
+			user.getEmail(),
+			user.getMobileNumber()
+		);		
+	}
+
+	public static User tenantRegFormToUserMap(TenantRegForm tenantRegForm, Residence residence) {
+		User newTenant = new User(
+			Formatting.getCurTimestamp(),
+			tenantRegForm.getUsername(),
+			tenantRegForm.getPassword(),
+			UserRole.ROLE_TENANT.getValue(),
+			tenantRegForm.getName(),
+			tenantRegForm.getSurname(),
+			tenantRegForm.getEmail(),
+			tenantRegForm.getMobileNumber()
+		);
+		
+		UserResidence tenantResidence = new UserResidence(
+			Formatting.getCurTimestamp(),
+			tenantRegForm.getTenancyFrom(),
+			tenantRegForm.getTenancyTo(),
+			newTenant,
+			residence
+		);
+		
+		newTenant.addUserResidence(tenantResidence);
+		return newTenant;
+	}
+	
+	public static User updateTenant(User user, TenantRegForm tenantRegForm) {
+		user.setName(tenantRegForm.getName());
+		user.setSurname(tenantRegForm.getSurname());
+		user.setUsername(tenantRegForm.getUsername());
+		UserResidence curResidence = getCurrentUserResidence(user);
+		curResidence.setTenancyStart(tenantRegForm.getTenancyFrom());
+		curResidence.setTenancyEnd(tenantRegForm.getTenancyTo());
+		user.setEmail(tenantRegForm.getEmail());
+		user.setMobileNumber(tenantRegForm.getMobileNumber());
+		
+		return user;
+	}
+	
+	public static User updateResidenceAdmin(User user, ResidenceAdminRegForm regForm) {
+		user.setName(regForm.getName());
+		user.setSurname(regForm.getSurname());
+		user.setUsername(regForm.getUsername());
+		user.setEmail(regForm.getEmail());
+		user.setMobileNumber(regForm.getMobileNumber());
+		
+		return user;
+	}
+	
+	public static User residenceAdminFormToUserMap(ResidenceAdminRegForm regForm, Residence residence) {
+		User newResidenceAdmin = new User(
+				Formatting.getCurTimestamp(),
+				regForm.getUsername(),
+				regForm.getPassword(),
+				UserRole.ROLE_RESIDENCE_ADMIN.getValue(),
+				regForm.getName(),
+				regForm.getSurname(),
+				regForm.getEmail(),
+				regForm.getMobileNumber()
+			);
+			
+			UserResidence adminsEmployer = new UserResidence(
+				Formatting.getCurTimestamp(),
+				newResidenceAdmin,
+				residence
+			);
+			
+			newResidenceAdmin.addUserResidence(adminsEmployer);
+			return newResidenceAdmin;
+	}
+	
+	private static UserResidence getCurrentUserResidence(User user) {
+		long curTs = Formatting.getCurTimestamp().getTime();
+		Optional<UserResidence> usrResidence = user.getUserResidences().stream()
+			.filter(residence -> (residence.getTenancyStart().getTime() <= curTs && curTs <= residence.getTenancyEnd().getTime())
+					|| (residence.getTenancyStart().getTime() >= curTs))
+			.findFirst();
+		
+		if (usrResidence.isEmpty()) return null;
+		return usrResidence.get();
+	}
+}
