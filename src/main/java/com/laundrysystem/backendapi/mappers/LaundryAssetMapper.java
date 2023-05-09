@@ -38,8 +38,8 @@ public class LaundryAssetMapper {
 		laundryAssetToUpdate.setName(laundryAssetRegForm.getName());
 		laundryAssetToUpdate.setRunningTime(laundryAssetRegForm.getRunningTime());
 		laundryAssetToUpdate.setIsOperational(laundryAssetRegForm.getIsOperational());
-		laundryAssetRegForm.setServicePrice(laundryAssetRegForm.getServicePrice());
-		laundryAssetRegForm.setCurrency(laundryAssetRegForm.getCurrency());
+		laundryAssetToUpdate.setServicePrice(laundryAssetRegForm.getServicePrice());
+		laundryAssetToUpdate.setCurrency(laundryAssetRegForm.getCurrency());
 		
 		return laundryAssetToUpdate;
 	}
