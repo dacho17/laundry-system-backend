@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
+import java.util.TimeZone;
 
 public class Formatting {
 
@@ -31,7 +32,7 @@ public class Formatting {
 		Timestamp curTimestamp = new Timestamp(System.currentTimeMillis());
 		List<Integer> ymdhmTime = getYMDHMtime(curTimestamp);
 		
-		Calendar calendar = Calendar.getInstance();
+		Calendar calendar = Calendar.getInstance((TimeZone.getTimeZone("UTC")));
 		calendar.set(Calendar.YEAR, ymdhmTime.get(0).intValue());
 		calendar.set(Calendar.MONTH, ymdhmTime.get(1).intValue() - 1);
 		calendar.set(Calendar.DAY_OF_MONTH, ymdhmTime.get(2).intValue());
@@ -55,7 +56,7 @@ public class Formatting {
 	
 	private static List<Integer> getYMDHMtime(Timestamp timestamp) {
 		Date date = new Date(timestamp.getTime());
-		Calendar calendar = Calendar.getInstance();
+		Calendar calendar = Calendar.getInstance((TimeZone.getTimeZone("UTC")));
 		calendar.setTime(date);
 		
 		List<Integer> time = new ArrayList<>();
@@ -79,9 +80,8 @@ public class Formatting {
 	
 	public static boolean isDailyBookingTimeslot(Timestamp timestamp) {
 		Calendar calendar = getCalendarFromTimestamp(timestamp);
-		
 		return
-			calendar.get(Calendar.HOUR_OF_DAY) == 0 &&
+			// calendar.get(Calendar.HOUR_OF_DAY) == 0 &&	NOTE: commented out due to Timezone conflicts
 			calendar.get(Calendar.MINUTE) == 0 &&
 			calendar.get(Calendar.SECOND) == 0 &&
 			calendar.get(Calendar.MILLISECOND) == 0;
@@ -128,7 +128,7 @@ public class Formatting {
 	
 	private static Calendar getCalendarFromTimestamp(Timestamp timestamp) {
 		Date date = new Date(timestamp.getTime());
-		Calendar calendar = Calendar.getInstance();
+		Calendar calendar = Calendar.getInstance((TimeZone.getTimeZone("UTC")));
 		calendar.setTime(date);
 		
 		return calendar;

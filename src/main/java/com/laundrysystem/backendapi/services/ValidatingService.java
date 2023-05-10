@@ -158,7 +158,7 @@ public class ValidatingService {
 		System.out.println(Formatting.isTimeSlotHourRelevant(timeslot));
 		System.out.println(validFn.apply(timeslot));
 		if (!isAssetIdValid || !isTimeslotValid) {
-			throwBadRequestError(String.format("The data received on /availability/purchase endpoint in the BookingRequestDto is faulty. Form=[%s]",
+			throwBadRequestError(String.format("The data received in the BookingRequestDto is faulty. Form=[%s]",
 					bookingRequest.toString()));
 		}
 	}
