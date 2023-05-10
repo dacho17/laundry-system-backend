@@ -20,18 +20,23 @@ public class BackendApiApplication {
 			public void addCorsMappings(CorsRegistry registry) {
 				registry.addMapping("/auth/**").allowedOrigins(
 					"http://localhost:3000",
+					"http://localhost:3001",
 					"https://client-coliv-demo.herokuapp.com");
 				registry.addMapping("/account/**").allowedOrigins(
 					"http://localhost:3000",
+					"http://localhost:3001",
 					"https://client-coliv-demo.herokuapp.com");
 				registry.addMapping("/availability/**").allowedOrigins(
 					"http://localhost:3000",
+					"http://localhost:3001",
 					"https://client-coliv-demo.herokuapp.com");
 				registry.addMapping("/booking/**").allowedOrigins(
 					"http://localhost:3000",
+					"http://localhost:3001",
 					"https://client-coliv-demo.herokuapp.com");
 				registry.addMapping("/residence-admin/**").allowedOrigins(
 					"http://localhost:3000",
+					"http://localhost:3001",
 					"https://client-coliv-demo.herokuapp.com");
 			}
 		};

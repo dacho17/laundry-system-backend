@@ -108,6 +108,10 @@ public class Booking {
 	public Purchase getPurchase() {
 		return purchase;
 	}
+
+	public void setPurchase(Purchase purchase) {
+		this.purchase = purchase;
+	}
 	
 	public List<LaundryAssetUse> getLaundryAssetUses() {
 		return this.laundryAssetUses;

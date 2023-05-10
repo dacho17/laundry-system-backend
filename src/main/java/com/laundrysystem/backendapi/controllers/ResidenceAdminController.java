@@ -138,7 +138,7 @@ public class ResidenceAdminController {
 	}
 	
 	@ResponseStatus(code = HttpStatus.OK)
-	@GetMapping("/assets")
+	@GetMapping("/laundry-assets")
 	public ResponseObject<List<LaundryAssetDto>> getLaundryAssets() throws Exception {
 		logger.info("GET /residence-admin/assets enpoint accessed.");
 		

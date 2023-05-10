@@ -9,7 +9,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.util.stream.Stream;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,14 +16,15 @@ import org.slf4j.LoggerFactory;
 import com.laundrysystem.backendapi.dtos.ActiveBookingsDto;
 import com.laundrysystem.backendapi.dtos.ActivityDto;
 import com.laundrysystem.backendapi.dtos.BookingDto;
+import com.laundrysystem.backendapi.dtos.PurchaseBooking;
 import com.laundrysystem.backendapi.dtos.PurchaseDto;
 import com.laundrysystem.backendapi.dtos.ReservedBookingDto;
 import com.laundrysystem.backendapi.dtos.TimeslotAvailabilityDto;
 import com.laundrysystem.backendapi.entities.Booking;
 import com.laundrysystem.backendapi.entities.LaundryAsset;
 import com.laundrysystem.backendapi.entities.LaundryAssetUse;
+import com.laundrysystem.backendapi.entities.Purchase;
 import com.laundrysystem.backendapi.entities.User;
-import com.laundrysystem.backendapi.enums.ActivityType;
 import com.laundrysystem.backendapi.enums.TimeslotAvailabilityStatus;
 import com.laundrysystem.backendapi.exceptions.ForbiddenActionException;
 import com.laundrysystem.backendapi.mappers.BookingMapper;
@@ -71,6 +71,7 @@ public class BookingServiceHelper {
 				earliestAvailabilities.add(new TimeslotAvailabilityDto(
 					earliestAvailability,
 					TimeslotAvailabilityStatus.FREE_TO_USE,
+					asset.getIsOperational(),
 					null,
 					null
 				));
@@ -81,34 +82,11 @@ public class BookingServiceHelper {
 			
 			Booking earliestBooking = earliestBookings.get(0);
 			
-			long runningTimeInMiliseconds = asset.getRunningTime() * MINUTES_TO_MS_MULTIPLIER;
-			boolean canAssetBeUsedImmediately = 
-				curTimestamp.getTime() + runningTimeInMiliseconds + USAGE_TIME_OFFSET_IN_MS < earliestBooking.getTimeslot().getTime();
-			if (canAssetBeUsedImmediately) {
-				// asset can be used immediately, there is no overlapping bookings
-				earliestAvailability = new PurchaseDto(
-					Formatting.timestampToDateStr(curTimestamp),
-					curTimestamp,
-					asset.getName(),
-					asset.getServicePrice(),
-					asset.getCurrency(),
-					asset.getId()
-				);
-				earliestAvailabilities.add(new TimeslotAvailabilityDto(
-					earliestAvailability,
-					TimeslotAvailabilityStatus.FREE_TO_USE,
-					null, null
-				));
-				logger.info(String.format("The earliest availability for asset (assetId=%d) is timeslot=%s.", asset.getId(), earliestAvailability.getChosenTimeslot()));
-				continue;
-			}
-			
-			System.out.println(String.format("\n\nExamining asset assetId=%d and its earliest booking %s\n\n", asset.getId(), earliestBooking.toString()));
-			// there is overlapping bookings. check if the booking is user's and there is enough time for the asset to run
+			// check if this is a currently running slot by the user
 			if (earliestBooking.getUser().getId() == user.getId()) {
-				// check if this is a currently running slot
 				System.out.println(String.format("\n\nExamining asset assetId=%d as possbily currently running\n\n", asset.getId()));
 				Optional<LaundryAssetUse> curUseCand = earliestBooking.getLaundryAssetUses().stream().findFirst();
+				Optional<LaundryAssetUse> prevUseCand = getAssetUseFromPreviousTimeslot(earliestBooking);
 				if (curUseCand.isPresent() && curUseCand.get().getEndTime().getTime() > Formatting.getCurTimestamp().getTime()) {
 					System.out.println(String.format("\n\nExamining asset assetId=%d and its use %s\n\n", asset.getId(), curUseCand.get().toString()));
 					earliestAvailability = new PurchaseDto(
@@ -122,13 +100,41 @@ public class BookingServiceHelper {
 					earliestAvailabilities.add(new TimeslotAvailabilityDto(
 						earliestAvailability,
 						TimeslotAvailabilityStatus.RUNNING_BY_USER,
+						asset.getIsOperational(),
 						curUseCand.get().getEndTime(),
 						null
 					));
 					logger.info(String.format("The earliest availability for asset (assetId=%d) is timeslot=%s.", asset.getId(), earliestAvailability.getChosenTimeslot()));
 					continue;
 				}
-				
+			}
+
+			long runningTimeInMiliseconds = asset.getRunningTime() * MINUTES_TO_MS_MULTIPLIER;
+			boolean canAssetBeUsedImmediately = 
+				curTimestamp.getTime() + runningTimeInMiliseconds < earliestBooking.getTimeslot().getTime();
+			if (canAssetBeUsedImmediately) {
+				// asset can be used immediately, there is no overlapping bookings
+				earliestAvailability = new PurchaseDto(
+					Formatting.timestampToDateStr(curTimestamp),
+					curTimestamp,
+					asset.getName(),
+					asset.getServicePrice(),
+					asset.getCurrency(),
+					asset.getId()
+				);
+				earliestAvailabilities.add(new TimeslotAvailabilityDto(
+					earliestAvailability,
+					TimeslotAvailabilityStatus.FREE_TO_USE,
+					asset.getIsOperational(),
+					null, null
+				));
+				logger.info(String.format("The earliest availability for asset (assetId=%d) is timeslot=%s.", asset.getId(), earliestAvailability.getChosenTimeslot()));
+				continue;
+			}
+			
+			System.out.println(String.format("\n\nExamining asset assetId=%d and its earliest booking %s\n\n", asset.getId(), earliestBooking.toString()));
+			// there is overlapping bookings. check if the booking is user's and there is enough time for the asset to run
+			if (earliestBooking.getUser().getId() == user.getId()) {
 				// calculating for how long does the user have this asset booked
 				Timestamp finalBookingTimeslotStart = null;
 				List<Booking> usersBookings = earliestBookings.stream().filter(booking -> booking.getUser().getId() == user.getId()).toList();
@@ -140,7 +146,7 @@ public class BookingServiceHelper {
 					}
 				}
 				
-				if ((curTimestamp.getTime() + runningTimeInMiliseconds + USAGE_TIME_OFFSET_IN_MS) < earliestBooking.getTimeslot().getTime() + BOOKING_SLOT_LENGTH_MS) {
+				if ((curTimestamp.getTime() + runningTimeInMiliseconds) < earliestBooking.getTimeslot().getTime() + BOOKING_SLOT_LENGTH_MS) {
 					earliestAvailability = new PurchaseDto(
 						Formatting.timestampToDateStr(curTimestamp),
 						curTimestamp,
@@ -153,6 +159,7 @@ public class BookingServiceHelper {
 					earliestAvailabilities.add(new TimeslotAvailabilityDto(
 						earliestAvailability,
 						TimeslotAvailabilityStatus.FREE_TO_USE_BOOKED,
+						asset.getIsOperational(),
 						null,
 						new Timestamp (finalBookingTimeslotStart.getTime() + BOOKING_SLOT_LENGTH_MS)
 					));
@@ -173,6 +180,7 @@ public class BookingServiceHelper {
 					earliestAvailabilities.add(new TimeslotAvailabilityDto(
 						earliestAvailability,
 						TimeslotAvailabilityStatus.FREE_TO_USE_BOOKED,
+						asset.getIsOperational(),
 						null, new Timestamp (finalBookingTimeslotStart.getTime() + BOOKING_SLOT_LENGTH_MS)
 					));
 					logger.info(String.format("The earliest availability for asset (assetId=%d) is timeslot=%s.", asset.getId(), earliestAvailability.getChosenTimeslot()));
@@ -182,7 +190,9 @@ public class BookingServiceHelper {
 			
 			// calculate for when can the booking be made
 			long earliestAvailableTimeslotAt = getEarliestAvaialability(asset).getTime();
-			Optional<Booking> bookingCand = earliestBookings.stream().filter(booking -> booking.getUser().getId() == user.getId()).findFirst();
+			Optional<Booking> bookingCand = earliestBookings.stream()
+				.filter(booking -> booking.getUser().getId() == user.getId() && curTimestamp.getTime() + runningTimeInMiliseconds < booking.getTimeslot().getTime() + BOOKING_SLOT_LENGTH_MS).findFirst();
+
 			if (bookingCand.isPresent()) {
 				long earliestUsersBooking = bookingCand.get().getTimeslot().getTime();
 				if (earliestUsersBooking < earliestAvailableTimeslotAt) {
@@ -195,6 +205,7 @@ public class BookingServiceHelper {
 					earliestAvailabilities.add(new TimeslotAvailabilityDto(
 						earliestAvailability,
 						TimeslotAvailabilityStatus.BOOKED_BY_USER,
+						asset.getIsOperational(),
 						null,
 						null
 					));
@@ -210,7 +221,7 @@ public class BookingServiceHelper {
 				asset.getId()
 			);
 
-			earliestAvailabilities.add(new TimeslotAvailabilityDto(earliestAvailability, TimeslotAvailabilityStatus.AVAILABLE_FROM, null, null));
+			earliestAvailabilities.add(new TimeslotAvailabilityDto(earliestAvailability, TimeslotAvailabilityStatus.AVAILABLE_FROM, asset.getIsOperational(), null, null));
 			logger.info(String.format("The earliest availability for asset (assetId=%d) is timeslot=%s.", asset.getId(), earliestAvailability.getChosenTimeslot()));
 		}
 		
@@ -248,7 +259,7 @@ public class BookingServiceHelper {
 		}
 		
 		List<Booking> sortedBookings = assetBookings.stream()
-			.filter((booking) -> (booking.getTimeslot().getTime() + BOOKING_SLOT_LENGTH_MS)> curTimestamp.getTime())
+			.filter((booking) -> (booking.getTimeslot().getTime() + BOOKING_SLOT_LENGTH_MS) > curTimestamp.getTime())
 			.sorted((first, second) -> first.getTimeslot().compareTo(second.getTimeslot())).toList();
 		
 		Iterator<Booking> bookIter = sortedBookings.iterator();
@@ -305,7 +316,7 @@ public class BookingServiceHelper {
 		logger.info(String.format("Fetching future bookings for the user with userId=%d", user.getId()));
 		Timestamp currTimestamp = new Timestamp(System.currentTimeMillis());
 		List<BookingDto> futureBookings = user.getBookings().stream()
-			.filter((booking) -> currTimestamp.getTime() < booking.getTimeslot().getTime() && booking.getPurchase() == null)
+			.filter((booking) -> currTimestamp.getTime() < (booking.getTimeslot().getTime() + BOOKING_SLOT_LENGTH_MS) && booking.getPurchase() == null)
 			.sorted((bookingOne, bookingTwo) -> bookingOne.getTimeslot().compareTo(bookingTwo.getTimeslot()))
 			.map((booking) -> BookingMapper.toDTO(booking)).toList();
 		
@@ -356,62 +367,87 @@ public class BookingServiceHelper {
 		return new ActiveBookingsDto(bookingsToPurchase, purchasedBookings); // , expiredBookings
 	}
 
-	public static List<BookingDto> getAssetBookingsOnDate(LaundryAsset laundryAsset, Timestamp date) {
+	public static List<BookingDto> getAssetBookingsOnDate(LaundryAsset laundryAsset, Timestamp date, int userId) {
 		String strDate = Formatting.getDayMonthYearFromTimestamp(date);
-		
+		Timestamp curTs = Formatting.getCurTimestamp();
+
 		logger.info(String.format("Filtering availability of laundryAsset with id=%d for date=%s.", laundryAsset.getId(), strDate));
 		List<BookingDto> bookingsOnDate = laundryAsset.getBookings().stream()
-			.filter((booking) -> date.getTime() <= booking.getTimeslot().getTime() && Formatting.getDayMonthYearFromTimestamp(booking.getTimeslot()).equals(strDate))
+			.filter((booking) -> ((date.getTime() <= booking.getTimeslot().getTime())
+				&& Formatting.getDayMonthYearFromTimestamp(booking.getTimeslot()).equals(strDate)))
 			.sorted((bookingOne, bookingTwo) -> bookingOne.getTimeslot().compareTo(bookingTwo.getTimeslot()))
 			.map((booking) -> BookingMapper.toDTO(booking)).toList();
+
+		if (bookingsOnDate.size() > 0) {
+			Booking firstFutureBooking = getEarliestBooking(laundryAsset).get(0);
+			if (firstFutureBooking.getTimeslot().getTime() > curTs.getTime()) {
+				long endRunningTime = curTs.getTime() + laundryAsset.getRunningTime() * MINUTES_TO_MS_MULTIPLIER;
+				if (firstFutureBooking.getTimeslot().getTime() <= endRunningTime && firstFutureBooking.getUser().getId() != userId) {
+					List<BookingDto> bookingsOnDateExpanded = new ArrayList<>();
+					bookingsOnDateExpanded.add(new BookingDto(
+						Formatting.timestampToDateStr(curTs),
+						Formatting.curTimestampToCurTimeslot(),
+						laundryAsset.getName(),
+						laundryAsset.getId())
+					);
+					bookingsOnDate.forEach(booking -> bookingsOnDateExpanded.add(booking));
+					logger.info(String.format("The bookings have been expanded with the initial blocked booking. Additional %d bookings have been found on the laundry asset with id=%d for date=%s.", bookingsOnDate.size(), laundryAsset.getId(), strDate));
+					return bookingsOnDateExpanded;
+				}
+			}
+		}
+		
 
 		logger.info(String.format("%d bookings have been found on the laundry asset with id=%d for date=%s.", bookingsOnDate.size(), laundryAsset.getId(), strDate));
 		return bookingsOnDate;
 	}
 	
+	// check if the current timeslot is already booked and do not book it again, same for the following
 	// 1. if fits into current timeslot book the one
 	// 2. else book both the current and the following timeslots
 	// or: book the current time slot and the following if it is required
-	public static List<Booking> getSlotsToBook(User user, LaundryAsset laundryAsset) {
-		List<Booking> slotsToBook = new ArrayList<>();
+	public static List<PurchaseBooking> getSlotsToBook(User user, LaundryAsset laundryAsset) {
+		List<PurchaseBooking> slotsToBook = new ArrayList<>();
 		Timestamp curTimestamp = new Timestamp(System.currentTimeMillis());
 		Timestamp currentTimeSlot = Formatting.curTimestampToCurTimeslot();
-		Booking curBookingSlot = new Booking(
-			curTimestamp,
-			currentTimeSlot,
-			user,
-			laundryAsset
-		);
+		PurchaseBooking curBookingSlot = prepareBookingsForStoring(currentTimeSlot, user, laundryAsset);
 		slotsToBook.add(curBookingSlot);
-		
+
+		Timestamp nextTimeslot = new Timestamp(currentTimeSlot.getTime() + BOOKING_SLOT_LENGTH_MS);
 		if ((curTimestamp.getTime() + laundryAsset.getRunningTime() * MINUTES_TO_MS_MULTIPLIER)
-				> (currentTimeSlot.getTime() + BOOKING_SLOT_LENGTH_MS)) {
-			Booking nextBookingSlot = new Booking(
-				curTimestamp,
-				new Timestamp(currentTimeSlot.getTime() + BOOKING_SLOT_LENGTH_MS),
-				user,
-				laundryAsset
-			);
+				> nextTimeslot.getTime()) {
+			PurchaseBooking nextBookingSlot = prepareBookingsForStoring(nextTimeslot, user, laundryAsset);
 			slotsToBook.add(nextBookingSlot);
 		}
 		
 		return slotsToBook;
 	}
 	
-	public static void checkAssetAvailabilityAt(LaundryAsset laundryAsset, Timestamp timeslot) {
+	public static boolean isAssetAvailableAt(LaundryAsset laundryAsset, Timestamp timeslot, int userId) {
 //		long curTs = Formatting.getCurTimestamp().getTime();
-		long endRunningTime = timeslot.getTime() + laundryAsset.getRunningTime() * MINUTES_TO_MS_MULTIPLIER;
+
+		// for current timeslot the current timestamp must be sent and check against it made!
+		Timestamp tempTimestamp = timeslot;
+		if (Formatting.curTimestampToCurTimeslot().getTime() == timeslot.getTime()) {
+			tempTimestamp = Formatting.getCurTimestamp();
+		}
+		Timestamp usedTimestamp = tempTimestamp;
+
+		long endRunningTime = usedTimestamp.getTime() + laundryAsset.getRunningTime() * MINUTES_TO_MS_MULTIPLIER;
 		Optional<Booking> overlappingBookingCandidate = laundryAsset.getBookings().stream()
 			.filter((booking)
 					-> booking.getTimeslot().getTime() == timeslot.getTime()
-					|| booking.getTimeslot().getTime() <= endRunningTime && endRunningTime < booking.getTimeslot().getTime() + BOOKING_SLOT_LENGTH_MS
-			).findAny();
+					|| ((booking.getTimeslot().getTime() <= endRunningTime)
+							&& (usedTimestamp.getTime() < booking.getTimeslot().getTime())
+							&& (booking.getUser().getId() != userId))).findAny();
 		
 		if (!overlappingBookingCandidate.isEmpty()) {
-			logger.error(String.format("Selected asset [assetId=%d] is not avaialble at the requested time [time=%s]. "
-					+ "Aborting booking request.", laundryAsset.getId(), timeslot.toString()));
-			throw new ForbiddenActionException();
+			logger.info(String.format("Selected asset [assetId=%d] is not avaialble at the requested time [time=%s].",
+				laundryAsset.getId(), usedTimestamp.toString()));
+			return false;
 		}
+
+		return true;
 	}
 	
 	public static boolean isAllowedToPurchase(LaundryAsset laundryAsset, User user) {
@@ -433,20 +469,29 @@ public class BookingServiceHelper {
 		}
 		
 		// check if there is a booking that overlaps with the running time
-		boolean isFreeToRun =
-			(curTimestamp.getTime() + runningTimeInMS) < earliestBookings.get(0).getTimeslot().getTime(); // + USAGE_TIME_OFFSET_IN_MS
-		System.out.println(String.format("Asset is currently free to run %b", isFreeToRun));
+		long earliestBookingStartTime = earliestBookings.get(0).getTimeslot().getTime();
+		boolean isOverlappingWithBooking =
+			(curTimestamp.getTime() < earliestBookingStartTime && earliestBookingStartTime < curTimestamp.getTime() + runningTimeInMS)
+			|| (curTimestamp.getTime() > earliestBookingStartTime);
+		System.out.println(String.format("Asset is overlapping with the earliest booking %b", isOverlappingWithBooking));
+
 		// there is no booking to interfere with the running time of the asset
-		if (isFreeToRun) {
+		if (!isOverlappingWithBooking) {
 			return true;
 		}
 		
 		// if the earliest booking is interfering, check if it belongs to the user. If it does it can be used by them
-		if (earliestBookings.get(0).getUser().getUsername().equals(user.getUsername())) {
-			if ((curTimestamp.getTime() + runningTimeInMS) < earliestBookings.get(0).getTimeslot().getTime() + BOOKING_SLOT_LENGTH_MS) { //  + USAGE_TIME_OFFSET_IN_MS {
+		if (isOverlappingWithBooking && earliestBookings.get(0).getUser().getUsername() == user.getUsername()) {
+			// check if the run falls withing the current timeslot
+			if ((curTimestamp.getTime() + runningTimeInMS) < earliestBookings.get(0).getTimeslot().getTime() + BOOKING_SLOT_LENGTH_MS) {
 				return true;				
 			}
-			if (earliestBookings.size() >= 2 && earliestBookings.get(1).getUser().getUsername().equals(user.getUsername())) {
+			// for the machine to run, additional slot is needed. the additional slot is booked and it is not immediately following
+			if (earliestBookings.size() == 1 || earliestBookings.get(1).getTimeslot().getTime() > earliestBookings.get(0).getTimeslot().getTime() + BOOKING_SLOT_LENGTH_MS) {
+				return true;
+			}
+			// for the machine to run, additional slot is needed. the additional slot is booked and it is user's
+			if (earliestBookings.size() > 1 && earliestBookings.get(1).getUser().getUsername().equals(user.getUsername())) {
 				return true;
 			}
 		}
@@ -516,5 +561,41 @@ public class BookingServiceHelper {
 		});
 		
 		return immediateBookings;
+	}
+
+	private static Optional<LaundryAssetUse> getAssetUseFromPreviousTimeslot(Booking followingTimeslot) {
+		Timestamp timeslot = new Timestamp(followingTimeslot.getTimeslot().getTime() - BOOKING_SLOT_LENGTH_MS);
+		User user = followingTimeslot.getUser();
+		Optional<Booking> prevBookingCand = user.getBookings().stream().filter(book -> book.getTimeslot().getTime() == timeslot.getTime()).findFirst();
+
+		if (!prevBookingCand.isPresent()) {
+			return null;			
+		}
+
+		Optional<LaundryAssetUse> assetUse = prevBookingCand.get().getLaundryAssetUses().stream().findFirst();
+		if (assetUse.isPresent() && assetUse.get().getEndTime().getTime() >= followingTimeslot.getTimeslot().getTime()) {
+			return assetUse;
+		}
+
+		return null;
+	}
+
+	private static PurchaseBooking prepareBookingsForStoring(Timestamp timeslot, User user, LaundryAsset laundryAsset) {
+		PurchaseBooking bookingSlot = new PurchaseBooking(new Booking(
+				Formatting.getCurTimestamp(),
+				timeslot,
+				user,
+				laundryAsset
+			),false
+		);
+
+		// check if the user already has a booking before attempting to create it again 
+		Optional<Booking> timeslotBooking = user.getBookings().stream()
+			.filter(book -> book.getTimeslot().getTime() == timeslot.getTime() && book.getLaundryAsset().getId() == laundryAsset.getId()).findAny();
+		if (timeslotBooking.isPresent()) {
+			bookingSlot.setIsAlreadyCreated(true);
+		}
+
+		return bookingSlot;
 	}
 }

@@ -11,6 +11,7 @@ import org.springframework.stereotype.Repository;
 import com.laundrysystem.backendapi.entities.PaymentCard;
 import com.laundrysystem.backendapi.entities.User;
 import com.laundrysystem.backendapi.repositories.interfaces.IPaymentCardRepository;
+import com.laundrysystem.backendapi.exceptions.EntryNotFoundException;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.criteria.CriteriaBuilder;
@@ -51,7 +52,19 @@ public class PaymentCardRepository implements IPaymentCardRepository {
 	public PaymentCard updateActiveCardForUser(User user, PaymentCard newPaymentCard) {
 		int userId = user.getId();
 
-		markCurrentylActiveCardAsUnused(userId);
+		PaymentCard activeCard = getActiveCard(userId);
+		if (activeCard != null) {
+			logger.info(String.format("Marking the currently active card with cardId=%d of user with userId=%d, as unused.", activeCard.getId(), userId));
+
+			activeCard.setBeingUsed(false);
+			update(activeCard);
+			
+			logger.info(String.format("Card with id=%d successfully marked as unused.", activeCard.getId()));
+		} else {
+			logger.info(String.format("No active cards found for the user with userId=%d.", userId));
+			// if (newPaymentCard == null)
+			// 	return null;
+		}
 		
 		newPaymentCard.setUser(user);
 		save(newPaymentCard);
@@ -75,20 +88,6 @@ public class PaymentCardRepository implements IPaymentCardRepository {
 		logger.info(String.format("Successfully updated the payment card id=%d for the user with userId=%d.", paymentCard.getId() ,paymentCard.getUser().getId()));
 
 		return paymentCard;
-	}
-
-	private void markCurrentylActiveCardAsUnused(int userId) {
-		PaymentCard activeCard = getActiveCard(userId);
-		if (activeCard != null) {
-			logger.info(String.format("Marking the currently active card with cardId=%d of user with userId=%d, as unused.", activeCard.getId(), userId));
-
-			activeCard.setBeingUsed(false);
-			update(activeCard);
-			
-			logger.info(String.format("Card with id=%d successfully marked as unused.", activeCard.getId()));
-		} else {
-			logger.info(String.format("No active cards found for the user with userId=%d.", userId));
-		}
 	}
 	
 	private PaymentCard getActiveCard(int userId) {

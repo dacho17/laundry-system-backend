@@ -13,6 +13,7 @@ import com.laundrysystem.backendapi.dtos.ActivityDto;
 import com.laundrysystem.backendapi.dtos.BookingDto;
 import com.laundrysystem.backendapi.dtos.BookingRequestDto;
 import com.laundrysystem.backendapi.dtos.LaundryAssetDto;
+import com.laundrysystem.backendapi.dtos.PurchaseBooking;
 import com.laundrysystem.backendapi.dtos.PurchaseDto;
 import com.laundrysystem.backendapi.dtos.TimeslotAvailabilityDto;
 import com.laundrysystem.backendapi.entities.Booking;
@@ -72,12 +73,12 @@ public class BookingService implements IBookingService {
 	
 	public List<BookingDto> getDailyAssetBookings(BookingRequestDto dailyBookingsRequest) throws DbException, EntryNotFoundException, ForbiddenActionException {
 		User user = userDataHelper.getActiveUser();
-		logger.info(String.format("Fetching daily asset bookings with for the request: %s", dailyBookingsRequest.toString()));
+		logger.info(String.format("Fetching daily asset bookings for the request: %s", dailyBookingsRequest.toString()));
 		
 		List<LaundryAsset> laundryAssets = userDataHelper.getAccessibleLaundryAssets(user);
 		LaundryAsset targetAsset = BookingServiceHelper.getTargetLaundryAsset(dailyBookingsRequest.getAssetId(), laundryAssets);
 		
-		List<BookingDto> dailyAssetBookings = BookingServiceHelper.getAssetBookingsOnDate(targetAsset, dailyBookingsRequest.getTimeslot());
+		List<BookingDto> dailyAssetBookings = BookingServiceHelper.getAssetBookingsOnDate(targetAsset, dailyBookingsRequest.getTimeslot(), user.getId());
 		
 		return dailyAssetBookings;
 	}
@@ -99,15 +100,25 @@ public class BookingService implements IBookingService {
 		);
 			
 		// storing booking/s to the database and connecting purchase object to the later booking
+		List<PurchaseBooking> slotsToBook;
 		if (BookingServiceHelper.isAllowedToPurchase(assetToBeUsed, user)) {
-			List<Booking> slotsToBook = BookingServiceHelper.getSlotsToBook(user, assetToBeUsed);
-			newPurchase.setBooking(slotsToBook.get(0));	// purchase is connected to the first booking slot
+			slotsToBook = BookingServiceHelper.getSlotsToBook(user, assetToBeUsed);
+			System.out.println(slotsToBook.get(0));
+			System.out.println(slotsToBook.get(1));
 			try {
-				for (Booking booking: slotsToBook) {
-					booking.setUser(user);
-					booking.setLaundryAsset(assetToBeUsed);
-					bookingRepository.save(booking);
-				}				
+				for (PurchaseBooking bookingToBook: slotsToBook) {
+					if (!bookingToBook.getIsAlreadyCreated()) {
+						bookingToBook.getBooking().setUser(user);
+						bookingToBook.getBooking().setLaundryAsset(assetToBeUsed);
+						bookingRepository.save(bookingToBook.getBooking());
+					} else {
+						Booking existingBooking = user.getBookings().stream()
+							.filter(book -> book.getTimeslot().getTime() == bookingToBook.getBooking().getTimeslot().getTime()
+								&& assetToBeUsed.getId() == book.getLaundryAsset().getId())
+							.toList().get(0);
+						bookingToBook.setBooking(existingBooking);
+					}
+				}
 			} catch (Exception exc) {
 				logger.error(String.format("An error occured while storing a booking in the database. - [err=%s]", exc.getStackTrace().toString()));
 				throw new DbException();
@@ -121,9 +132,13 @@ public class BookingService implements IBookingService {
 		// TODO: make a payment card charge!
 		logger.info(String.format("The card (cardId=%d) has succesfully been charged.", activePaymentCard.getId()));
 		
-		// creating purchase in the db
+		// storing purchase in the db
 		try {
-			purchaseRepository.save(newPurchase);			
+			Booking bookingWithPurchase = slotsToBook.get(0).getBooking();
+			// bookingWithPurchase.setPurchase(newPurchase);
+			newPurchase.setBooking(bookingWithPurchase);
+			purchaseRepository.save(newPurchase);
+			bookingRepository.update(bookingWithPurchase);
 		} catch (Exception exc) {
 			logger.error(String.format("An error occured while storing a purchase in the database. - [err=%s]", exc.getStackTrace().toString()));
 			throw new DbException();
@@ -165,8 +180,13 @@ public class BookingService implements IBookingService {
 		List<LaundryAsset> laundryAssets = userDataHelper.getAccessibleLaundryAssets(user);
 		LaundryAsset assetToBeUsed = BookingServiceHelper.getTargetLaundryAsset(bookingRequest.getAssetId(), laundryAssets);
 		
-		BookingServiceHelper.checkAssetAvailabilityAt(assetToBeUsed, bookingRequest.getTimeslot());
-		
+		boolean isAssetAvailable = BookingServiceHelper.isAssetAvailableAt(assetToBeUsed, bookingRequest.getTimeslot(), user.getId());
+		if (!isAssetAvailable) {
+			logger.error(String.format("Selected asset [assetId=%d] is not avaialble at the requested time [time=%s]. "
+				+ "Aborting booking request.", assetToBeUsed.getId(), bookingRequest.toString()));
+			throw new ForbiddenActionException();	
+		}
+
 		List<Booking> necessaryBookingSlots = BookingServiceHelper.getBookingSlots(user, assetToBeUsed, bookingRequest.getTimeslot());
 		try {
 			necessaryBookingSlots.forEach(bookingSlot -> {

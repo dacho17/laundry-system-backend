@@ -48,7 +48,7 @@ public class ApiExceptionController {
 	@ExceptionHandler
 	public ResponseEntity<ResponseObject<?>> handleException(EntryNotFoundException exc) {
 		logger.warn(String.format("Exception of %s occured, API is returning %s response.", exc.getClass().toString(), HttpStatus.NOT_FOUND));
-		return new ResponseEntity<>(new ResponseObject<>(dataNotFound, exc.getMessage()), HttpStatus.NOT_FOUND);
+		return new ResponseEntity<>(new ResponseObject<>(exc.getMessage() != null ? exc.getMessage() : dataNotFound, exc.getMessage()), HttpStatus.NOT_FOUND);
 	}
 	
 	@ExceptionHandler

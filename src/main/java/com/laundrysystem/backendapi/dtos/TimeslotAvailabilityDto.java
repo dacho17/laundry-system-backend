@@ -7,15 +7,18 @@ import com.laundrysystem.backendapi.enums.TimeslotAvailabilityStatus;
 public class TimeslotAvailabilityDto {
     private ActivityDto activity;
     private TimeslotAvailabilityStatus status;
+	private boolean isAssetOperational;
     private Timestamp runningTimeEnd;
     private Timestamp bookingSlotEnd;
     
     public TimeslotAvailabilityDto() {}
 
-	public TimeslotAvailabilityDto(ActivityDto activity, TimeslotAvailabilityStatus status, Timestamp runningTimeEnd, Timestamp bookingSlotEnd) {
+	public TimeslotAvailabilityDto(ActivityDto activity, TimeslotAvailabilityStatus status, boolean isAssetOperational,
+		Timestamp runningTimeEnd, Timestamp bookingSlotEnd) {
 		super();
 		this.activity = activity;
 		this.status = status;
+		this.isAssetOperational = isAssetOperational;
 		this.runningTimeEnd = runningTimeEnd;
 		this.bookingSlotEnd = bookingSlotEnd;
 	}
@@ -36,6 +39,14 @@ public class TimeslotAvailabilityDto {
 		this.status = status;
 	}
 
+	public boolean getIsAssetOperational() {
+		return isAssetOperational;
+	}
+
+	public void setIsAssetOperational(boolean isAssetOperational) {
+		this.isAssetOperational = isAssetOperational;
+	}
+
 	public Timestamp getRunningTimeEnd() {
 		return runningTimeEnd;
 	}
@@ -54,7 +65,8 @@ public class TimeslotAvailabilityDto {
 
 	@Override
 	public String toString() {
-		return "TimeslotAvailabilityDto [activity=" + activity + ", status=" + status + ", runningTimeEnd="
-				+ runningTimeEnd + ", bookingSlotEnd=" + bookingSlotEnd + "]";
+		return "TimeslotAvailabilityDto [activity=" + activity + ", status=" 
+			+ status + ", isAssetOperational=" + isAssetOperational + ", runningTimeEnd="
+			+ runningTimeEnd + ", bookingSlotEnd=" + bookingSlotEnd + "]";
 	}
 }

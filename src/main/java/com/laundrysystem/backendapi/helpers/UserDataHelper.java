@@ -68,14 +68,19 @@ public class UserDataHelper {
 		logger.info(String.format("%d laundry assets have been fetched for the residency with id=%d",
 			laundryAssets.size(), curResidence.getId()));
 		
-		return laundryAssets;
+		// NOTE: in case only the operational assets are to be returned!
+		List<LaundryAsset> operationalAssets = laundryAssets.stream().filter(asset -> asset.getIsOperational()).toList();
+		logger.info(String.format("Out of %d fetched laundry assets, %d laundry assets are operational",
+			laundryAssets.size(), operationalAssets.size()));
+		
+		return operationalAssets;
 	}
 	
 	public PaymentCard getActivePaymentCardFor(User user) throws EntryNotFoundException{
 		PaymentCard activePaymentCard = paymentCardRepository.getActivePaymentCardForUser(user.getId());
 		
 		if (activePaymentCard == null) {
-			throw new EntryNotFoundException();
+			throw new EntryNotFoundException("Please register a payment method to proceed.");
 		}
 		
 		return activePaymentCard;

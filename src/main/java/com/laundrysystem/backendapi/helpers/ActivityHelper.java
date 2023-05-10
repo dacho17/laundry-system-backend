@@ -22,9 +22,15 @@ public class ActivityHelper {
 		List<Booking> bookings = user.getBookings();
 		List<Purchase> purchases = user.getPurchases();
 		
-		bookings.sort((first, second) -> second.getCreatedDate().compareTo(first.getCreatedDate()));
+		bookings.sort((first, second) -> {
+			int firstComp = second.getCreatedDate().compareTo(first.getCreatedDate());
+			if (firstComp != 0) return firstComp;
+			return second.getTimeslot().compareTo(first.getTimeslot());
+		});
+
+		// only one purchase connected to the timeslot atm
 		purchases.sort((first, second) -> second.getCreatedDate().compareTo(first.getCreatedDate()));
-			
+
 		Iterator<Booking> bookIter = bookings.iterator();
 		Iterator<Purchase> purIter = purchases.iterator();
 		

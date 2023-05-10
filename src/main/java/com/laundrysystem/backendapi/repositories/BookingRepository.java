@@ -24,4 +24,14 @@ public class BookingRepository implements IBookingRepository {
 		
 		logger.info(String.format("Successfully stored the booking connected to the user with Id=[%d]", booking.getUser().getId()));
 	}
+
+	public Booking update(Booking booking) {
+		logger.info(String.format("Updating the booking with id=%d", booking.getId()));
+		
+		Booking updatedBooking = entityManager.merge(booking);
+		
+		logger.info(String.format("Booking with id=%d has been updated.", booking.getId()));
+		
+		return updatedBooking;
+	}
 }

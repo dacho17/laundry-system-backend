@@ -5,6 +5,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
+import com.laundrysystem.backendapi.entities.Booking;
 import com.laundrysystem.backendapi.entities.Purchase;
 import com.laundrysystem.backendapi.repositories.interfaces.IPurchaseRepository;
 
