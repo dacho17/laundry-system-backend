@@ -554,9 +554,10 @@ public class BookingServiceHelper {
 				// check if the asset has enough time to run before the expiry of the timeslot
 				long endTimeOfSlot = reservedBookingDto.getToTimeslot().getTime();
 				long endTimeOfAssetOperation = curTs + laundryAsset.getRunningTime() * MINUTES_TO_MS_MULTIPLIER;
-				if (endTimeOfAssetOperation < endTimeOfSlot) {
-					immediateBookings.add(reservedBookingDto);					
-				}
+				if (endTimeOfAssetOperation < endTimeOfSlot 
+					|| laundryAsset.getBookings().stream().filter(book -> book.getTimeslot().getTime() == endTimeOfSlot).findAny().isEmpty()) {
+						immediateBookings.add(reservedBookingDto);
+					}				
 			}
 		});
 		
