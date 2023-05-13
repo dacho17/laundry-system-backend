@@ -13,8 +13,8 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 
 @Entity
-@Table(name = "user_residence")
-public class UserResidence {
+@Table(name = "tenancies")
+public class Tenancy {
 	@Id
 	@GeneratedValue(strategy=GenerationType.IDENTITY)
 	@Column(name = "id")
@@ -39,15 +39,15 @@ public class UserResidence {
 	@JoinColumn(name = "residence_id", referencedColumnName = "id")
 	private Residence residence;
 
-	public UserResidence() {}
+	public Tenancy() {}
 
-	public UserResidence(Timestamp createdDate, User user, Residence residence) {
+	public Tenancy(Timestamp createdDate, User user, Residence residence) {
 		this.createdDate = createdDate;
 		this.user = user;
 		this.residence = residence;
 	}
 	
-	public UserResidence(Timestamp createdDate, Timestamp tenancyStart, Timestamp tenancyEnd, User user, Residence residence) {
+	public Tenancy(Timestamp createdDate, Timestamp tenancyStart, Timestamp tenancyEnd, User user, Residence residence) {
 		this.createdDate = createdDate;
 		this.tenancyStart = tenancyStart;
 		this.tenancyEnd = tenancyEnd;
@@ -55,7 +55,7 @@ public class UserResidence {
 		this.residence = residence;
 	}
 	
-	public UserResidence(int id, Timestamp createdDate, Timestamp tenancyStart, User user, Residence residence) {
+	public Tenancy(int id, Timestamp createdDate, Timestamp tenancyStart, User user, Residence residence) {
 		super();
 		this.id = id;
 		this.createdDate = createdDate;
@@ -114,7 +114,7 @@ public class UserResidence {
 
 	@Override
 	public String toString() {
-		return "UserResidence [id=" + id + ", createdDate=" + createdDate + ", tenancyStart=" + tenancyStart
+		return "Tenancy [id=" + id + ", createdDate=" + createdDate + ", tenancyStart=" + tenancyStart
 				+ ", tenancyEnd=" + tenancyEnd + ", user=" + user
 				+ ", residence=" + residence + "]";
 	}

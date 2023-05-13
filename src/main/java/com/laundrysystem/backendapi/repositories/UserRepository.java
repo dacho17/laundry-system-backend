@@ -7,7 +7,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 import com.laundrysystem.backendapi.entities.User;
-import com.laundrysystem.backendapi.entities.UserResidence;
+import com.laundrysystem.backendapi.entities.Tenancy;
 import com.laundrysystem.backendapi.enums.UserRole;
 import com.laundrysystem.backendapi.repositories.interfaces.IUserRepository;
 
@@ -74,12 +74,12 @@ public class UserRepository implements IUserRepository {
 		logger.info(String.format("Fetching users with userRoleType=%d for residence residenceId=%d", userRole.getValue(), residenceId));
 		
 		CriteriaBuilder cb = entityManager.getCriteriaBuilder();
-	    CriteriaQuery<UserResidence> query = cb.createQuery(UserResidence.class);
-	    Root<UserResidence> root = query.from(UserResidence.class);
+	    CriteriaQuery<Tenancy> query = cb.createQuery(Tenancy.class);
+	    Root<Tenancy> root = query.from(Tenancy.class);
 	    query = query.select(root)
 			.where(cb.equal(root.get("residence"), residenceId));
 	   
-	    List<UserResidence> usrResidences = entityManager.createQuery(query).getResultList();
+	    List<Tenancy> usrResidences = entityManager.createQuery(query).getResultList();
 	    List<User> usersWithRoleType = usrResidences.stream().map(usrResidence -> usrResidence.getUser())
 	    		.filter(user -> user.getRole() == userRole.getValue()).toList();
 	    

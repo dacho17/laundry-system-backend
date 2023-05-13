@@ -1,6 +1,5 @@
 package com.laundrysystem.backendapi.mappers;
 
-import java.sql.Timestamp;
 import java.util.Optional;
 
 import com.laundrysystem.backendapi.dtos.ResidenceAdminDto;
@@ -11,7 +10,7 @@ import com.laundrysystem.backendapi.dtos.UpdateUserInfoForm;
 import com.laundrysystem.backendapi.dtos.UserDto;
 import com.laundrysystem.backendapi.entities.Residence;
 import com.laundrysystem.backendapi.entities.User;
-import com.laundrysystem.backendapi.entities.UserResidence;
+import com.laundrysystem.backendapi.entities.Tenancy;
 import com.laundrysystem.backendapi.enums.UserRole;
 import com.laundrysystem.backendapi.utils.Formatting;
 
@@ -35,15 +34,15 @@ public class UserMapper {
 	}
 	
 	public static TenantDto userToTenantDto(User user) {
-		UserResidence usrRes = getCurrentUserResidence(user);
+		Tenancy tenancy = getCurrentTenancy(user);
 		long curTs = Formatting.getCurTimestamp().getTime();
 		return new TenantDto(
 			user.getName(),
 			user.getSurname(),
 			user.getUsername(),
-			usrRes.getTenancyStart(),
-			usrRes.getTenancyEnd(),
-			usrRes.getTenancyStart().getTime() <= curTs && curTs <= usrRes.getTenancyEnd().getTime(),
+			tenancy.getTenancyStart(),
+			tenancy.getTenancyEnd(),
+			tenancy.getTenancyStart().getTime() <= curTs && curTs <= tenancy.getTenancyEnd().getTime(),
 			user.getEmail(),
 			user.getCountryDialCode(),
 			user.getMobileNumber()
@@ -74,7 +73,7 @@ public class UserMapper {
 			tenantRegForm.getMobileNumber()
 		);
 		
-		UserResidence tenantResidence = new UserResidence(
+		Tenancy tenancy = new Tenancy(
 			Formatting.getCurTimestamp(),
 			tenantRegForm.getTenancyFrom(),
 			tenantRegForm.getTenancyTo(),
@@ -82,7 +81,7 @@ public class UserMapper {
 			residence
 		);
 		
-		newTenant.addUserResidence(tenantResidence);
+		newTenant.addTenancy(tenancy);
 		return newTenant;
 	}
 	
@@ -90,7 +89,7 @@ public class UserMapper {
 		user.setName(tenantRegForm.getName());
 		user.setSurname(tenantRegForm.getSurname());
 		user.setUsername(tenantRegForm.getUsername());
-		UserResidence curResidence = getCurrentUserResidence(user);
+		Tenancy curResidence = getCurrentTenancy(user);
 		curResidence.setTenancyStart(tenantRegForm.getTenancyFrom());
 		curResidence.setTenancyEnd(tenantRegForm.getTenancyTo());
 		user.setEmail(tenantRegForm.getEmail());
@@ -124,19 +123,19 @@ public class UserMapper {
 				regForm.getMobileNumber()
 			);
 			
-			UserResidence adminsEmployer = new UserResidence(
+			Tenancy adminsEmployer = new Tenancy(
 				Formatting.getCurTimestamp(),
 				newResidenceAdmin,
 				residence
 			);
 			
-			newResidenceAdmin.addUserResidence(adminsEmployer);
+			newResidenceAdmin.addTenancy(adminsEmployer);
 			return newResidenceAdmin;
 	}
 	
-	private static UserResidence getCurrentUserResidence(User user) {
+	private static Tenancy getCurrentTenancy(User user) {
 		long curTs = Formatting.getCurTimestamp().getTime();
-		Optional<UserResidence> usrResidence = user.getUserResidences().stream()
+		Optional<Tenancy> usrResidence = user.getTenancies().stream()
 			.filter(residence -> (residence.getTenancyStart().getTime() <= curTs && curTs <= residence.getTenancyEnd().getTime())
 					|| (residence.getTenancyStart().getTime() >= curTs))
 			.findFirst();

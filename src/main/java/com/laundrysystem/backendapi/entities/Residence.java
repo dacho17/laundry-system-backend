@@ -35,7 +35,7 @@ public class Residence {
 	
 	@OneToMany(mappedBy = "residence", cascade = {CascadeType.PERSIST, CascadeType.MERGE,
 			CascadeType.DETACH, CascadeType.REFRESH})
-	private List<UserResidence> userResidences;
+	private List<Tenancy> tenancies;
 	
 	@OneToMany(mappedBy = "residence", cascade = {CascadeType.PERSIST, CascadeType.MERGE,
 			CascadeType.DETACH, CascadeType.REFRESH})
@@ -43,14 +43,14 @@ public class Residence {
 	
 	public Residence() {}
 
-	public Residence(int id, Timestamp createdDate, String name, Address address, List<UserResidence> userResidences,
+	public Residence(int id, Timestamp createdDate, String name, Address address, List<Tenancy> tenancies,
 			List<LaundryAsset> laundryAssets) {
 		super();
 		this.id = id;
 		this.createdDate = createdDate;
 		this.name = name;
 		this.address = address;
-		this.userResidences = userResidences;
+		this.tenancies = tenancies;
 		this.laundryAssets = laundryAssets;
 	}
 
@@ -86,12 +86,12 @@ public class Residence {
 		this.address = address;
 	}
 
-	public List<UserResidence> getUserResidences() {
-		return userResidences;
+	public List<Tenancy> getTenancies() {
+		return tenancies;
 	}
 
-	public void setUserResidences(List<UserResidence> userResidences) {
-		this.userResidences = userResidences;
+	public void setTenancies(List<Tenancy> tenancies) {
+		this.tenancies = tenancies;
 	}
 
 	public List<LaundryAsset> getLaundryAssets() {
@@ -105,7 +105,7 @@ public class Residence {
 	@Override
 	public String toString() {
 		return "Residence [id=" + id + ", createdDate=" + createdDate + ", name=" + name 
-				+ ", address=" + address + ", userResidences="
-				+ userResidences + ", laundryAssets=" + laundryAssets + "]";
+				+ ", address=" + address + ", tenancies="
+				+ tenancies + ", laundryAssets=" + laundryAssets + "]";
 	}
 }

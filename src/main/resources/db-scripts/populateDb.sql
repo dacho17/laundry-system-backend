@@ -15,7 +15,7 @@ SET @resAddressId := (SELECT id FROM addresses
 INSERT INTO residences (created_date, `name`, address_id)
 VALUES (CURRENT_TIMESTAMP(), 'Coliv Damai Residence', @resAddressId);
 
-INSERT INTO user_residence (created_date, tenancy_start, tenancy_end, user_id, residence_id)
+INSERT INTO tenancies (created_date, tenancy_start, tenancy_end, user_id, residence_id)
 VALUES (CURRENT_TIMESTAMP(), CURRENT_TIMESTAMP(), TIMESTAMPADD(MONTH, 24, CURRENT_TIMESTAMP()), @resAdminId, @resAddressId);
 
 INSERT INTO laundry_assets (created_date, `name`, asset_type, 

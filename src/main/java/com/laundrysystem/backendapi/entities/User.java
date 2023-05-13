@@ -74,7 +74,7 @@ public class User implements Serializable {
 	
 	@OneToMany(mappedBy = "user", cascade = {CascadeType.PERSIST, CascadeType.MERGE,
 		CascadeType.DETACH, CascadeType.REFRESH})
-	private List<UserResidence> userResidences;
+	private List<Tenancy> tenancies;
 	
 	public User() {
 	}
@@ -103,7 +103,7 @@ public class User implements Serializable {
 
 	public User(int id, Timestamp createdDate, String username, String password, short role, String name, String surname,
 		String jwt, String email, String countryDialCode, String mobileNumber, String passwordResetToken, Timestamp passwordResetValidUntil,
-		List<PaymentCard> paymentCards, List<Booking> bookings, List<Purchase> purchases, List<UserResidence> userResidences) {
+		List<PaymentCard> paymentCards, List<Booking> bookings, List<Purchase> purchases, List<Tenancy> tenancies) {
 		super();
 		this.id = id;
 		this.createdDate = createdDate;
@@ -121,7 +121,7 @@ public class User implements Serializable {
 		this.paymentCards = paymentCards;
 		this.bookings = bookings;
 		this.purchases = purchases;
-		this.userResidences = userResidences;
+		this.tenancies = tenancies;
 	}
 
 	public int getId() {
@@ -253,20 +253,20 @@ public class User implements Serializable {
 		this.purchases = purchases;
 	}
 
-	public List<UserResidence> getUserResidences() {
-		return userResidences;
+	public List<Tenancy> getTenancies() {
+		return tenancies;
 	}
 
-	public void setUserResidences(List<UserResidence> userResidences) {
-		this.userResidences = userResidences;
+	public void setTenancies(List<Tenancy> tenancies) {
+		this.tenancies = tenancies;
 	}
 	
-	public void addUserResidence(UserResidence userResidence) {
-		if (this.userResidences == null) {
-			this.userResidences = new ArrayList<>();
+	public void addTenancy(Tenancy tenancy) {
+		if (this.tenancies == null) {
+			this.tenancies = new ArrayList<>();
 		}
 		
-		this.userResidences.add(userResidence);
+		this.tenancies.add(tenancy);
 	}
 
 	@Override

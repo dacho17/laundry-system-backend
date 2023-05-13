@@ -20,7 +20,7 @@ import com.laundrysystem.backendapi.entities.LaundryAsset;
 import com.laundrysystem.backendapi.entities.PaymentCard;
 import com.laundrysystem.backendapi.entities.Residence;
 import com.laundrysystem.backendapi.entities.User;
-import com.laundrysystem.backendapi.entities.UserResidence;
+import com.laundrysystem.backendapi.entities.Tenancy;
 import com.laundrysystem.backendapi.exceptions.ApiBadRequestException;
 import com.laundrysystem.backendapi.exceptions.DbException;
 import com.laundrysystem.backendapi.exceptions.EntryNotFoundException;
@@ -47,14 +47,14 @@ public class UserDataHelper {
 		logger.info(String.format("Finding the current residence for user with userId=%d.", user.getId()));
 		long curTs = Formatting.getCurTimestamp().getTime();
 		
-		Optional<UserResidence> activeTenancyCandidate;
+		Optional<Tenancy> activeTenancyCandidate;
 		try {
-			activeTenancyCandidate = user.getUserResidences().stream()
+			activeTenancyCandidate = user.getTenancies().stream()
 					.filter((residence) -> (residence.getTenancyStart().getTime() <= curTs && curTs <= residence.getTenancyEnd().getTime())
 					|| (residence.getTenancyStart().getTime() >= curTs)).findFirst();			
 		} catch (Exception exc) {
 			logger.warn(String.format("For now this is an indication of residence admin employee"));
-			return user.getUserResidences().get(0).getResidence();
+			return user.getTenancies().get(0).getResidence();
 		}
 
 

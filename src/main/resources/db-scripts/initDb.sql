@@ -46,7 +46,7 @@ CREATE TABLE IF NOT EXISTS `residences` (
     FOREIGN KEY (`address_id`) REFERENCES `addresses` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
-CREATE TABLE IF NOT EXISTS `user_residence` (
+CREATE TABLE IF NOT EXISTS `tenancies` (
 	`id` int PRIMARY KEY NOT NULL AUTO_INCREMENT,
 	`created_date` datetime NOT NULL,
 	`tenancy_start` datetime DEFAULT NULL, -- set to null since employees are connected to the residencies but the concept of 'tenancy' does not apply to them
