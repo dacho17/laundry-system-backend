@@ -12,6 +12,7 @@ import com.laundrysystem.backendapi.dtos.ActiveBookingsDto;
 import com.laundrysystem.backendapi.dtos.ActivityDto;
 import com.laundrysystem.backendapi.dtos.BookingDto;
 import com.laundrysystem.backendapi.dtos.BookingRequestDto;
+import com.laundrysystem.backendapi.dtos.DailyBookingRequestDto;
 import com.laundrysystem.backendapi.dtos.LaundryAssetDto;
 import com.laundrysystem.backendapi.dtos.PurchaseBooking;
 import com.laundrysystem.backendapi.dtos.PurchaseDto;
@@ -71,14 +72,14 @@ public class BookingService implements IBookingService {
 		return earliestAvailabilities;
 	}
 	
-	public List<BookingDto> getDailyAssetBookings(BookingRequestDto dailyBookingsRequest) throws DbException, EntryNotFoundException, ForbiddenActionException {
+	public List<BookingDto> getDailyAssetBookings(DailyBookingRequestDto dailyBookingsRequest) throws DbException, EntryNotFoundException, ForbiddenActionException {
 		User user = userDataHelper.getActiveUser();
 		logger.info(String.format("Fetching daily asset bookings for the request: %s", dailyBookingsRequest.toString()));
 		
 		List<LaundryAsset> laundryAssets = userDataHelper.getAccessibleLaundryAssets(user);
 		LaundryAsset targetAsset = BookingServiceHelper.getTargetLaundryAsset(dailyBookingsRequest.getAssetId(), laundryAssets);
 		
-		List<BookingDto> dailyAssetBookings = BookingServiceHelper.getAssetBookingsOnDate(targetAsset, dailyBookingsRequest.getTimeslot(), user.getId());
+		List<BookingDto> dailyAssetBookings = BookingServiceHelper.getAssetBookingsFromTo(targetAsset, dailyBookingsRequest.getTimeslotFrom(), dailyBookingsRequest.getTimeslotTo(), user.getId());
 		
 		return dailyAssetBookings;
 	}

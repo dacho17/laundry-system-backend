@@ -2,7 +2,6 @@ package com.laundrysystem.backendapi.services;
 
 import java.sql.Timestamp;
 import java.util.Arrays;
-import java.util.Calendar;
 import java.util.function.Function;
 import java.util.regex.Pattern;
 import java.util.List;
@@ -13,6 +12,7 @@ import org.springframework.stereotype.Service;
 
 import com.laundrysystem.backendapi.dtos.AuthRequest;
 import com.laundrysystem.backendapi.dtos.BookingRequestDto;
+import com.laundrysystem.backendapi.dtos.DailyBookingRequestDto;
 import com.laundrysystem.backendapi.dtos.ForgotPasswordFormDto;
 import com.laundrysystem.backendapi.dtos.LaundryAssetRegForm;
 import com.laundrysystem.backendapi.dtos.PasswordResetFormDto;
@@ -91,13 +91,16 @@ public class ValidatingService {
 		validateBookingTimeslot(bookingRequest, (req) -> Formatting.isBookingTimeslot(req));
 	}
 	
-	public void validateIncomingDailyBookingRequest(BookingRequestDto bookingRequest) throws ApiBadRequestException {
-		boolean isTimestampToday = Formatting.isTimestampToday(bookingRequest.getTimeslot());
-		System.out.println(String.format("The received timestamp is for today %b", isTimestampToday));
+	public void validateIncomingDailyBookingRequest(DailyBookingRequestDto bookingRequest) throws ApiBadRequestException {
+		Timestamp curTimeslot = bookingRequest.getTimeslotFrom();
+		boolean isTimestampToday = Formatting.isTimestampToday(curTimeslot);
+		System.out.println(String.format("The received timestamp %s is for today %b", curTimeslot, isTimestampToday));
+		
+		BookingRequestDto bookingReqHelper = new BookingRequestDto(bookingRequest.getAssetId(), curTimeslot);
 		if (isTimestampToday) {
-			validateBookingTimeslot(bookingRequest, (req) -> Formatting.isBookingTimeslot(req));
+			validateBookingTimeslot(bookingReqHelper, (req) -> Formatting.isBookingTimeslot(req));
 		} else {
-			validateBookingTimeslot(bookingRequest, (req) -> Formatting.isDailyBookingTimeslot(req));			
+			validateBookingTimeslot(bookingReqHelper, (req) -> Formatting.isDailyBookingTimeslot(req));			
 		}
 	}
 	

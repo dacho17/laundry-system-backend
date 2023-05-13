@@ -6,6 +6,7 @@ import com.laundrysystem.backendapi.dtos.ActiveBookingsDto;
 import com.laundrysystem.backendapi.dtos.ActivityDto;
 import com.laundrysystem.backendapi.dtos.BookingDto;
 import com.laundrysystem.backendapi.dtos.BookingRequestDto;
+import com.laundrysystem.backendapi.dtos.DailyBookingRequestDto;
 import com.laundrysystem.backendapi.dtos.LaundryAssetDto;
 import com.laundrysystem.backendapi.dtos.PurchaseDto;
 import com.laundrysystem.backendapi.dtos.TimeslotAvailabilityDto;
@@ -18,7 +19,7 @@ public interface IBookingService {
 	List<TimeslotAvailabilityDto> getLaundryAssetsEarliestAvailability() throws EntryNotFoundException, DbException;
 	PurchaseDto purchaseLaundryService(int assetId) throws DbException, EntryNotFoundException;
 	List<BookingDto> bookLaundryAsset(BookingRequestDto bookingRequest) throws DbException, EntryNotFoundException;
-	List<BookingDto> getDailyAssetBookings(BookingRequestDto dailyBookingsRequest) throws DbException, EntryNotFoundException, ForbiddenActionException;
+	List<BookingDto> getDailyAssetBookings(DailyBookingRequestDto dailyBookingsRequest) throws DbException, EntryNotFoundException, ForbiddenActionException;
 	List<BookingDto> getUsersFutureBookings() throws EntryNotFoundException;
 	List<LaundryAssetDto> getAccessibleLaundryAssets() throws DbException, EntryNotFoundException;
 	ActiveBookingsDto getActiveBookings() throws EntryNotFoundException;

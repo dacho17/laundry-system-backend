@@ -367,14 +367,13 @@ public class BookingServiceHelper {
 		return new ActiveBookingsDto(bookingsToPurchase, purchasedBookings); // , expiredBookings
 	}
 
-	public static List<BookingDto> getAssetBookingsOnDate(LaundryAsset laundryAsset, Timestamp date, int userId) {
-		String strDate = Formatting.getDayMonthYearFromTimestamp(date);
+	public static List<BookingDto> getAssetBookingsFromTo(LaundryAsset laundryAsset, Timestamp from, Timestamp to, int userId) {
 		Timestamp curTs = Formatting.getCurTimestamp();
 
-		logger.info(String.format("Filtering availability of laundryAsset with id=%d for date=%s.", laundryAsset.getId(), strDate));
+		logger.info(String.format("Filtering availability of laundryAsset with id=%d between [%s, %s].", laundryAsset.getId(), from, to));
 		List<BookingDto> bookingsOnDate = laundryAsset.getBookings().stream()
-			.filter((booking) -> ((date.getTime() <= booking.getTimeslot().getTime())
-				&& Formatting.getDayMonthYearFromTimestamp(booking.getTimeslot()).equals(strDate)))
+			.filter((booking) -> ((from.getTime() <= booking.getTimeslot().getTime())
+				&& (booking.getTimeslot().getTime() < to.getTime())))
 			.sorted((bookingOne, bookingTwo) -> bookingOne.getTimeslot().compareTo(bookingTwo.getTimeslot()))
 			.map((booking) -> BookingMapper.toDTO(booking)).toList();
 
@@ -391,14 +390,14 @@ public class BookingServiceHelper {
 						laundryAsset.getId())
 					);
 					bookingsOnDate.forEach(booking -> bookingsOnDateExpanded.add(booking));
-					logger.info(String.format("The bookings have been expanded with the initial blocked booking. Additional %d bookings have been found on the laundry asset with id=%d for date=%s.", bookingsOnDate.size(), laundryAsset.getId(), strDate));
+					logger.info(String.format("The bookings have been expanded with the initial blocked booking. Additional %d bookings have been found on the laundry asset with id=%d between [%s, %s].", bookingsOnDate.size(), laundryAsset.getId(), from, to));
 					return bookingsOnDateExpanded;
 				}
 			}
 		}
 		
 
-		logger.info(String.format("%d bookings have been found on the laundry asset with id=%d for date=%s.", bookingsOnDate.size(), laundryAsset.getId(), strDate));
+		logger.info(String.format("%d bookings have been found on the laundry asset with id=%d between [%s, %s].", bookingsOnDate.size(), laundryAsset.getId(), from, to));
 		return bookingsOnDate;
 	}
 	

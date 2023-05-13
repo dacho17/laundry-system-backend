@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.laundrysystem.backendapi.dtos.ActiveBookingsDto;
 import com.laundrysystem.backendapi.dtos.BookingDto;
 import com.laundrysystem.backendapi.dtos.BookingRequestDto;
+import com.laundrysystem.backendapi.dtos.DailyBookingRequestDto;
 import com.laundrysystem.backendapi.dtos.LaundryAssetDto;
 import com.laundrysystem.backendapi.dtos.ResponseObject;
 import com.laundrysystem.backendapi.helpers.UserDataHelper;
@@ -51,7 +52,7 @@ public class BookingController {
 	
 	@ResponseStatus(code = HttpStatus.OK)
 	@PostMapping("/daily-bookings")
-	public ResponseObject<List<BookingDto>> getLaundryAssetDailyBookings(@RequestBody BookingRequestDto dailyBookingsRequest) throws Exception {
+	public ResponseObject<List<BookingDto>> getLaundryAssetDailyBookings(@RequestBody DailyBookingRequestDto dailyBookingsRequest) throws Exception {
 		logger.info("GET /booking/daily-bookings endpoint accessed");
 		
 		validatingService.validateIncomingDailyBookingRequest(dailyBookingsRequest);
