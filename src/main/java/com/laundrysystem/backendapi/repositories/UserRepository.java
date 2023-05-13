@@ -41,11 +41,12 @@ public class UserRepository implements IUserRepository {
 		}
 	}
 
-	public User setUserEmailAndMobileNumber(User user, String email, String mobileNumber) {
+	public User setUserEmailAndMobileNumber(User user, String email, String dialCode, String mobileNumber) {
 		logger.info(String.format("About to change the user's (userId=%1$d) email address and mobileNumber ["
-				+ "{oldEmail=%2$s, newEmail=%3$s}, {oldMobileNumber=%4$s, newMobileNumber=%5$s}]",
-				user.getId(), user.getEmail(), email, user.getMobileNumber(), mobileNumber));
+				+ "{oldEmail=%2$s, newEmail=%3$s}, {oldDialCode=%4$s, newDialCode=%5$s} {oldMobileNumber=%6$s, newMobileNumber=%7$s}]",
+				user.getId(), user.getEmail(), email, user.getCountryDialCode(), dialCode, user.getMobileNumber(), mobileNumber));
 		user.setEmail(email);
+		user.setCountryDialCode(dialCode);
 		user.setMobileNumber(mobileNumber);
 		user = update(user);
 

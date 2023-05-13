@@ -6,18 +6,20 @@ public class ResidenceAdminRegForm {
 	private String name;
 	private String surname;
 	private String email;
+	private String countryDialCode;
 	private String mobileNumber;
 	
 	public ResidenceAdminRegForm() {}
 
 	public ResidenceAdminRegForm(String username, String password, String name, String surname, String email,
-			String mobileNumber) {
+			String countryDialCode, String mobileNumber) {
 		super();
 		this.username = username;
 		this.password = password;
 		this.name = name;
 		this.surname = surname;
 		this.email = email;
+		this.countryDialCode = countryDialCode;
 		this.mobileNumber = mobileNumber;
 	}
 
@@ -61,6 +63,14 @@ public class ResidenceAdminRegForm {
 		this.email = email;
 	}
 
+	public String getCountryDialCode() {
+		return countryDialCode;
+	}
+
+	public void setCountryDialCode(String countryDialCode) {
+		this.countryDialCode = countryDialCode;
+	}
+
 	public String getMobileNumber() {
 		return mobileNumber;
 	}
@@ -72,6 +82,7 @@ public class ResidenceAdminRegForm {
 	@Override
 	public String toString() {
 		return "ResidenceAdminRegForm [username=" + username + ", password=" + password + ", name=" + name
-				+ ", surname=" + surname + ", email=" + email + ", mobileNumber=" + mobileNumber + "]";
+				+ ", surname=" + surname + ", email=" + email + ", countryDialCode=" + countryDialCode 
+				+ ", mobileNumber=" + mobileNumber + "]";
 	}
 }

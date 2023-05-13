@@ -11,7 +11,7 @@ public interface IUserRepository {
 	User findByEmail(String email);
 	void save(User user);
 	User update(User user);
-	User setUserEmailAndMobileNumber(User user, String email, String mobileNumber);
+	User setUserEmailAndMobileNumber(User user, String email, String dialCode, String mobileNumber);
 	User setUserJwt(int userId, String jwt);
 	
 	List<User> getResidenceUsersOfType(int id, UserRole userRole);

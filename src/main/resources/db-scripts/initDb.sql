@@ -19,6 +19,7 @@ CREATE TABLE IF NOT EXISTS `users` (
 	`name` varchar(255) NOT NULL,
 	`surname` varchar(255) NOT NULL,
 	`email` varchar(255) NOT NULL,
+	`country_dial_code` varchar(8) NOT NULL,
 	`mobile_number` varchar(255) NOT NULL,
 	`password_reset_token` varchar(255) DEFAULT NULL,
 	`password_reset_valid_until` datetime DEFAULT NULL,

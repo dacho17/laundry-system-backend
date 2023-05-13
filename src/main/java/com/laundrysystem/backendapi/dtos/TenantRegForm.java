@@ -10,12 +10,13 @@ public class TenantRegForm {
 	private Timestamp tenancyFrom;
 	private Timestamp tenancyTo;
 	private String email;
+	private String countryDialCode;
 	private String mobileNumber;
 	
 	public TenantRegForm() {}
 
 	public TenantRegForm(String name, String surname, String username, String password, Timestamp tenancyFrom,
-			Timestamp tenancyTo, String email, String mobileNumber) {
+			Timestamp tenancyTo, String email, String countryDialCode, String mobileNumber) {
 		super();
 		this.name = name;
 		this.surname = surname;
@@ -24,6 +25,7 @@ public class TenantRegForm {
 		this.tenancyFrom = tenancyFrom;
 		this.tenancyTo = tenancyTo;
 		this.email = email;
+		this.countryDialCode = countryDialCode;
 		this.mobileNumber = mobileNumber;
 	}
 
@@ -83,6 +85,14 @@ public class TenantRegForm {
 		this.email = email;
 	}
 
+	public String getCountryDialCode() {
+		return countryDialCode;
+	}
+
+	public void setCountryDialCode(String countryDialCode) {
+		this.countryDialCode = countryDialCode;
+	}
+
 	public String getMobileNumber() {
 		return mobileNumber;
 	}
@@ -95,6 +105,6 @@ public class TenantRegForm {
 	public String toString() {
 		return "TenantRegForm [name=" + name + ", surname=" + surname + ", username=" + username + ", password="
 				+ password + ", tenancyFrom=" + tenancyFrom + ", tenancyTo=" + tenancyTo + ", email=" + email
-				+ ", mobileNumber=" + mobileNumber + "]";
+				+ ", countryDialCode=" + countryDialCode + ", mobileNumber=" + mobileNumber + "]";
 	}
 }

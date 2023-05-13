@@ -21,6 +21,7 @@ public class UserMapper {
 		return new UpdateUserInfoForm(
 			user.getUsername(),
 			user.getEmail(),
+			user.getCountryDialCode(),
 			user.getMobileNumber()
 		);
 	}
@@ -44,6 +45,7 @@ public class UserMapper {
 			usrRes.getTenancyEnd(),
 			usrRes.getTenancyStart().getTime() <= curTs && curTs <= usrRes.getTenancyEnd().getTime(),
 			user.getEmail(),
+			user.getCountryDialCode(),
 			user.getMobileNumber()
 		);
 	}
@@ -54,6 +56,7 @@ public class UserMapper {
 			user.getName(),
 			user.getSurname(),
 			user.getEmail(),
+			user.getCountryDialCode(),
 			user.getMobileNumber()
 		);		
 	}
@@ -67,6 +70,7 @@ public class UserMapper {
 			tenantRegForm.getName(),
 			tenantRegForm.getSurname(),
 			tenantRegForm.getEmail(),
+			tenantRegForm.getCountryDialCode(),
 			tenantRegForm.getMobileNumber()
 		);
 		
@@ -90,6 +94,7 @@ public class UserMapper {
 		curResidence.setTenancyStart(tenantRegForm.getTenancyFrom());
 		curResidence.setTenancyEnd(tenantRegForm.getTenancyTo());
 		user.setEmail(tenantRegForm.getEmail());
+		user.setCountryDialCode(tenantRegForm.getCountryDialCode());
 		user.setMobileNumber(tenantRegForm.getMobileNumber());
 		
 		return user;
@@ -100,6 +105,7 @@ public class UserMapper {
 		user.setSurname(regForm.getSurname());
 		user.setUsername(regForm.getUsername());
 		user.setEmail(regForm.getEmail());
+		user.setCountryDialCode(regForm.getCountryDialCode());
 		user.setMobileNumber(regForm.getMobileNumber());
 		
 		return user;
@@ -114,6 +120,7 @@ public class UserMapper {
 				regForm.getName(),
 				regForm.getSurname(),
 				regForm.getEmail(),
+				regForm.getCountryDialCode(),
 				regForm.getMobileNumber()
 			);
 			

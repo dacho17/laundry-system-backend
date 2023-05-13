@@ -3,12 +3,14 @@ package com.laundrysystem.backendapi.dtos;
 public class UpdateUserInfoForm {
 	private String username;
 	private String email;
+	private String countryDialCode;
 	private String mobileNumber;
 	
-	public UpdateUserInfoForm(String username, String email, String mobileNumber) {
+	public UpdateUserInfoForm(String username, String email, String countryDialCode, String mobileNumber) {
 		super();
 		this.username = username;
 		this.email = email;
+		this.countryDialCode = countryDialCode;
 		this.mobileNumber = mobileNumber;
 	}
 
@@ -28,6 +30,14 @@ public class UpdateUserInfoForm {
 		this.email = email;
 	}
 
+	public String getCountryDialCode() {
+		return countryDialCode;
+	}
+
+	public void setCountryDialCode(String countryDialCode) {
+		this.countryDialCode = countryDialCode;
+	}
+
 	public String getMobileNumber() {
 		return mobileNumber;
 	}
@@ -38,6 +48,7 @@ public class UpdateUserInfoForm {
 
 	@Override
 	public String toString() {
-		return "UpdateUserInfoForm [username=" + username + ", email=" + email + ", mobileNumber=" + mobileNumber + "]";
+		return "UpdateUserInfoForm [username=" + username + ", email=" + email +
+			", countryDialCode=" + countryDialCode + ", mobileNumber=" + mobileNumber + "]";
 	}
 }

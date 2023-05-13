@@ -5,16 +5,18 @@ public class ResidenceAdminDto {
 	private String name;
 	private String surname;
 	private String email;
+	private String countryDialCode;
 	private String mobileNumber;
 	
 	public ResidenceAdminDto() {}
 
-	public ResidenceAdminDto(String username, String name, String surname, String email, String mobileNumber) {
+	public ResidenceAdminDto(String username, String name, String surname, String email, String countryDialCode, String mobileNumber) {
 		super();
 		this.username = username;
 		this.name = name;
 		this.surname = surname;
 		this.email = email;
+		this.countryDialCode = countryDialCode;
 		this.mobileNumber = mobileNumber;
 	}
 
@@ -50,6 +52,14 @@ public class ResidenceAdminDto {
 		this.email = email;
 	}
 
+	public String getCountryDialCode() {
+		return countryDialCode;
+	}
+
+	public void setCountryDialCode(String countryDialCode) {
+		this.countryDialCode = countryDialCode;
+	}
+
 	public String getMobileNumber() {
 		return mobileNumber;
 	}
@@ -61,6 +71,6 @@ public class ResidenceAdminDto {
 	@Override
 	public String toString() {
 		return "ResidenceAdminDto [username=" + username + ", name=" + name + ", surname=" + surname + ", email="
-				+ email + ", mobileNumber=" + mobileNumber + "]";
+				+ email + ", countryDialCode=" + countryDialCode + ", mobileNumber=" + mobileNumber + "]";
 	}
 }

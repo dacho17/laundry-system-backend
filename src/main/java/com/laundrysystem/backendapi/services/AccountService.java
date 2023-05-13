@@ -48,7 +48,8 @@ public class AccountService implements IAccountService {
 		logger.info(String.format("About to update user information (userId=%d) with [%s]", user.getId(), userInfoForm.toString()));
 		
 		try {
-			User updatedUser = userRepository.setUserEmailAndMobileNumber(user, userInfoForm.getEmail(), userInfoForm.getMobileNumber());
+			User updatedUser = userRepository.setUserEmailAndMobileNumber(user,
+				userInfoForm.getEmail(), userInfoForm.getCountryDialCode(), userInfoForm.getMobileNumber());
 			return UserMapper.toUserInfoForm(updatedUser);
 		} catch (Exception exc) {
 			logger.error("An error occurred while updatingUserInfo for userId=%d. Err - [%s]", user.getId(), exc.getStackTrace().toString());

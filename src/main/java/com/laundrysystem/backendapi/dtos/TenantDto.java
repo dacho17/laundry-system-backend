@@ -10,12 +10,13 @@ public class TenantDto {
 	private Timestamp tenancyTo;
 	private boolean isTenancyActive;
 	private String email;
+	private String countryDialCode;
 	private String mobileNumber;
 	
 	public TenantDto() {}
 	
 	public TenantDto(String name, String surname, String username, Timestamp tenancyFrom, Timestamp tenancyTo,
-			boolean isTenancyActive, String email, String mobileNumber) {
+			boolean isTenancyActive, String email, String countryDialCode, String mobileNumber) {
 		super();
 		this.name = name;
 		this.surname = surname;
@@ -24,6 +25,7 @@ public class TenantDto {
 		this.tenancyTo = tenancyTo;
 		this.isTenancyActive = isTenancyActive;
 		this.email = email;
+		this.countryDialCode = countryDialCode;
 		this.mobileNumber = mobileNumber;
 	}
 
@@ -83,6 +85,14 @@ public class TenantDto {
 		this.email = email;
 	}
 
+	public String getCountryDialCode() {
+		return countryDialCode;
+	}
+
+	public void setCountryDialCode(String countryDialCode) {
+		this.countryDialCode = countryDialCode;
+	}
+
 	public String getMobileNumber() {
 		return mobileNumber;
 	}
@@ -95,6 +105,6 @@ public class TenantDto {
 	public String toString() {
 		return "TenantDto [name=" + name + ", surname=" + surname + ", username=" + username + ", tenancyFrom="
 				+ tenancyFrom + ", tenancyTo=" + tenancyTo + ", isTenancyActive=" + isTenancyActive + ", email=" + email
-				+ ", mobileNumber=" + mobileNumber + "]";
+				+ ", countryDialCode=" + countryDialCode + ", mobileNumber=" + mobileNumber + "]";
 	}
 }

@@ -47,6 +47,9 @@ public class User implements Serializable {
 	
 	@Column(name = "email")
 	private String email;
+
+	@Column(name = "country_dial_code")
+	private String countryDialCode;
 	
 	@Column(name = "mobile_number")
 	private String mobileNumber;
@@ -86,7 +89,7 @@ public class User implements Serializable {
 	}
 	
 	public User(Timestamp createdDate, String username, String password, short role, String name, String surname,
-			String email, String mobileNumber) {
+			String email, String countryDialCode, String mobileNumber) {
 		this.createdDate = createdDate;
 		this.username = username;
 		this.password = password;
@@ -94,11 +97,12 @@ public class User implements Serializable {
 		this.name = name;
 		this.surname = surname;
 		this.email = email;
+		this.countryDialCode = countryDialCode;
 		this.mobileNumber = mobileNumber;
 	}
 
 	public User(int id, Timestamp createdDate, String username, String password, short role, String name, String surname,
-		String jwt, String email, String mobileNumber, String passwordResetToken, Timestamp passwordResetValidUntil,
+		String jwt, String email, String countryDialCode, String mobileNumber, String passwordResetToken, Timestamp passwordResetValidUntil,
 		List<PaymentCard> paymentCards, List<Booking> bookings, List<Purchase> purchases, List<UserResidence> userResidences) {
 		super();
 		this.id = id;
@@ -110,6 +114,7 @@ public class User implements Serializable {
 		this.surname = surname;
 		this.jwt = jwt;
 		this.email = email;
+		this.countryDialCode = countryDialCode;
 		this.mobileNumber = mobileNumber;
 		this.passwordResetToken = passwordResetToken;
 		this.passwordResetValidUntil = passwordResetValidUntil;
@@ -191,6 +196,14 @@ public class User implements Serializable {
 		this.email = email;
 	}
 
+	public String getCountryDialCode() {
+		return countryDialCode;
+	}
+
+	public void setCountryDialCode(String countryDialCode) {
+		this.countryDialCode = countryDialCode;
+	}
+
 	public String getMobileNumber() {
 		return mobileNumber;
 	}
@@ -260,7 +273,7 @@ public class User implements Serializable {
 	public String toString() {
 		return "User [id=" + id + ", createdDate=" + createdDate + ", username=" + username + ", password=" + password
 				+ ", role=" + role + ", jwt=" + jwt + ", name=" + name + ", surname=" + surname + ", email=" + email
-				+ ", mobileNumber=" + mobileNumber + ", passwordResetToken=" + passwordResetToken
-				+ ", passwordResetValidUntil=" + passwordResetValidUntil + "]";
+				+ ", countryDialCode=" + countryDialCode + ", mobileNumber=" + mobileNumber 
+				+ ", passwordResetToken=" + passwordResetToken + ", passwordResetValidUntil=" + passwordResetValidUntil + "]";
 	}
 }

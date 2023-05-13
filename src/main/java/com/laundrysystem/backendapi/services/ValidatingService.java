@@ -55,34 +55,22 @@ public class ValidatingService {
 	}
 	
 	public void validateUpdateUserInfoForm(UpdateUserInfoForm userInfoForm) throws ApiBadRequestException {
-		String postedEmail = userInfoForm.getEmail();
-		String postedMobileNumber = userInfoForm.getMobileNumber();
-		if (postedEmail == null || postedMobileNumber == null) {
-			throwBadRequestError(String.format("Some required data in the UpdateUserInfoForm has not been received. Form received=[%s]", userInfoForm.toString()));
-		}
+		boolean isEmailValid = validateEmail(userInfoForm.getEmail());
+		boolean isDialCodeValid = validateDialCode(userInfoForm.getCountryDialCode());
+		boolean isMobileNumberValid = validateMobileNumber(userInfoForm.getMobileNumber());
 		
-		boolean isEmailInCorrectFormat = validateEmail(postedEmail);
-		boolean isMobileNumberInCorrectFormat = postedMobileNumber.length() == 8;	// TODO: this needs to be fine grained based on the country
-		
-		if (!isEmailInCorrectFormat || !isMobileNumberInCorrectFormat) {
+		if (!isEmailValid || !isDialCodeValid || !isMobileNumberValid) {
 			throwBadRequestError(String.format("The data received in the UpdateUserInfoForm is of incorrect format. Form received=[%s]", userInfoForm.toString()));
 		}
 	}
 	
 	// NOTE: trivial validation for the time being
 	public void validateAuthRequest(AuthRequest authRequest, String authType) throws ApiBadRequestException {
-		String username = authRequest.getUsername();
-		String password = authRequest.getPassword();
+		boolean isUsernameValid = validateUsername(authRequest.getUsername());
+		boolean isPasswordValid = validatePassword(authRequest.getPassword());
 		short role = authRequest.getRole();
 		
-		if (username == null || password == null || (authType == SINGUP && UserRole.getRole(role) == null)) {
-			throwBadRequestError(String.format("Some required data in the AuthRequest has not been received. Form received=[%s]", authRequest.toString()));
-		}
-		
-		boolean isUsernameInValidFormat = username.length() > 5;
-		boolean isPasswordInValidFormat = password.length() > 5;
-		
-		if (!isUsernameInValidFormat || !isPasswordInValidFormat) {
+		if (!isUsernameValid || !isPasswordValid || (authType == SINGUP && UserRole.getRole(role) == null)) {
 			throwBadRequestError(String.format("The data received in the AuthRequest is of incorrect format. Form received=[%s]", authRequest.toString()));
 		}
 	}
@@ -114,44 +102,44 @@ public class ValidatingService {
 	}
 	
 	public void validateTenantRegForm(TenantRegForm tenantRegForm, boolean isNewTenantForm) throws ApiBadRequestException {
-		boolean isNameValid = tenantRegForm.getName().length() >= 2;
-		boolean isSurnameValid = tenantRegForm.getSurname().length() >= 2;
-		boolean isUsernameValid = tenantRegForm.getUsername().length() > 5;
-		
-		// password is not being validated for the update user form
-		boolean isPasswordValid = !isNewTenantForm || tenantRegForm.getPassword().length() > 5;
+		boolean isNameValid = validateName(tenantRegForm.getName());
+		boolean isSurnameValid = validateName(tenantRegForm.getSurname());
+		boolean isUsernameValid = validateUsername(tenantRegForm.getUsername());
+		boolean isPasswordValid = !isNewTenantForm || validatePassword(tenantRegForm.getPassword());
 		boolean isEmailInCorrectFormat = validateEmail(tenantRegForm.getEmail());
-		boolean isMobileNumberInCorrectFormat = tenantRegForm.getMobileNumber().length() == 8;	// TODO: this needs to be fine grained based on the country
-		
+		boolean isDialCodeInCorrectFormat = validateDialCode(tenantRegForm.getCountryDialCode());
+		boolean isMobileNumberInCorrectFormat = validateMobileNumber(tenantRegForm.getMobileNumber());
+
 		Timestamp curTimeTs = new Timestamp(System.currentTimeMillis());
 		Timestamp aMonthFromCurTimeTs = new Timestamp(curTimeTs.getTime() + 30 * 24 * 60 * 60 * 1000);
 		boolean isTenancyFromValid = !isNewTenantForm || tenantRegForm.getTenancyFrom().after(curTimeTs);
 		boolean isTenancyUntilValid = tenantRegForm.getTenancyTo().after(aMonthFromCurTimeTs);
 		
-		if (!isNameValid || !isSurnameValid || !isPasswordValid || !isUsernameValid || !isEmailInCorrectFormat  || !isMobileNumberInCorrectFormat 
+		if (!isNameValid || !isSurnameValid || !isPasswordValid || !isUsernameValid || !isEmailInCorrectFormat
+				||!isDialCodeInCorrectFormat || !isMobileNumberInCorrectFormat
 				|| !isTenancyFromValid ||  !isTenancyUntilValid) {
 			throwBadRequestError(String.format("The data received in the TenantRegForm is of incorrect format. Form received=[%s]", tenantRegForm.toString()));
 		}
 	}
 	
 	public void validateResidenceAdminRegForm(ResidenceAdminRegForm residenceAdminRegForm, boolean isNewResidenceAdminForm) throws ApiBadRequestException {
-		boolean isNameValid = residenceAdminRegForm.getName().length() >= 2;
-		boolean isSurnameValid = residenceAdminRegForm.getSurname().length() >= 2;
-		boolean isUsernameValid = residenceAdminRegForm.getUsername().length() > 5;
-		
-		// password is not being validated for the update residence admin form
-		boolean isPasswordValid = !isNewResidenceAdminForm|| residenceAdminRegForm.getPassword().length() > 5;
+		boolean isNameValid = validateName(residenceAdminRegForm.getName());
+		boolean isSurnameValid = validateName(residenceAdminRegForm.getSurname());
+		boolean isUsernameValid = validateUsername(residenceAdminRegForm.getUsername());
+		boolean isPasswordValid = !isNewResidenceAdminForm || validatePassword(residenceAdminRegForm.getPassword());
 		boolean isEmailInCorrectFormat = validateEmail(residenceAdminRegForm.getEmail());
-		boolean isMobileNumberInCorrectFormat = residenceAdminRegForm.getMobileNumber().length() == 8;	// TODO: this needs to be fine grained based on the country		
-	
-		if (!isNameValid || !isSurnameValid || !isPasswordValid || !isUsernameValid || !isEmailInCorrectFormat  || !isMobileNumberInCorrectFormat) {
+		boolean isDialCodeInCorrectFormat = validateDialCode(residenceAdminRegForm.getCountryDialCode());
+		boolean isMobileNumberInCorrectFormat = validateMobileNumber(residenceAdminRegForm.getMobileNumber());
+				
+		if (!isNameValid || !isSurnameValid || !isPasswordValid || !isUsernameValid
+			|| !isEmailInCorrectFormat || !isDialCodeInCorrectFormat || !isMobileNumberInCorrectFormat) {
 			throwBadRequestError(String.format("The data received in the ResidenceAdminRegForm is of incorrect format. Form received=[%s]", residenceAdminRegForm.toString()));
 		}
 	}
 	
 	public void validateLaundryAssetRegForm(LaundryAssetRegForm laundryAssetRegForm, boolean isNewLaundryAssetForm) throws ApiBadRequestException{
 		boolean isIdPresent = isNewLaundryAssetForm || laundryAssetRegForm.getId() > 0;
-		boolean isNameValid = laundryAssetRegForm.getName().length() >= 2;
+		boolean isNameValid = validateName(laundryAssetRegForm.getName());
 		boolean isTypeValid = isNewLaundryAssetForm || LaundryAssetType.getType(laundryAssetRegForm.getAssetType()) != null;
 		boolean isRunningTimeValid = laundryAssetRegForm.getRunningTime() > 0;
 		boolean isPriceValid = laundryAssetRegForm.getServicePrice() > 0;
@@ -173,17 +161,34 @@ public class ValidatingService {
 		boolean isAssetIdValid = assetId > 0;
 		boolean isTimeslotValid = Formatting.isTimeSlotHourRelevant(timeslot) && validFn.apply(timeslot);
 		
-		System.out.println(isAssetIdValid);
-		System.out.println(Formatting.isTimeSlotHourRelevant(timeslot));
-		System.out.println(validFn.apply(timeslot));
 		if (!isAssetIdValid || !isTimeslotValid) {
 			throwBadRequestError(String.format("The data received in the BookingRequestDto is faulty. Form=[%s]",
 					bookingRequest.toString()));
 		}
 	}
+
+	private boolean validateUsername(String username) {
+		return username != null && username.length() > 5;
+	}
+
+	private boolean validatePassword(String password) {
+		return password != null && password.length() > 5;
+	}
+
+	private boolean validateName(String name) {
+		return name != null && name.length() >= 2;
+	}
+
+	private boolean validateDialCode(String dialCode) {
+		return dialCode != null && dialCode.length() == 3 || dialCode.length() == 4;	// +xy(z)
+	}
+
+	private boolean validateMobileNumber(String mobileNumber) {
+		return mobileNumber != null && mobileNumber.length() >= 6;	// TODO: this needs to be fine grained based on the country
+	}
 	
 	private boolean validateEmail(String email) {
-		boolean isEmailInCorrectFormat = Pattern.compile(VALID_EMAIL_PATTERN)
+		boolean isEmailInCorrectFormat = email != null && Pattern.compile(VALID_EMAIL_PATTERN)
 	      .matcher(email)
 	      .matches();
 		return isEmailInCorrectFormat;
@@ -193,6 +198,4 @@ public class ValidatingService {
 		logger.error(msgToLog);
 		throw new ApiBadRequestException();
 	}
-	
-	
 }
