@@ -9,14 +9,15 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.laundrysystem.backendapi.dtos.AuthRequest;
+import com.laundrysystem.backendapi.dtos.ForgotPasswordFormDto;
+import com.laundrysystem.backendapi.dtos.PasswordResetFormDto;
 import com.laundrysystem.backendapi.dtos.ResponseObject;
 import com.laundrysystem.backendapi.dtos.UserDto;
-import com.laundrysystem.backendapi.exceptions.ApiBadRequestException;
-import com.laundrysystem.backendapi.exceptions.DbException;
 import com.laundrysystem.backendapi.services.ValidatingService;
 import com.laundrysystem.backendapi.services.interfaces.IUserService;
 
@@ -68,7 +69,7 @@ public class AuthController {
 	public ResponseObject<UserDto> login(@RequestBody AuthRequest loginRequest) throws Exception {
 		logger.info("POST /login endpoint accessed.");
 		
-		validatingService.validateAuthRequest(loginRequest, ValidatingService.loginFlag);
+		validatingService.validateAuthRequest(loginRequest, ValidatingService.LOGIN);
 		UserDto loggedInUser = userService.loginUser(loginRequest);
 		
 		logger.info(String.format("The user (username=%s) has successfully been logged in.", loggedInUser.getUsername()));
@@ -120,5 +121,31 @@ public class AuthController {
 		
 		logger.info(String.format("The user username=%s has successfully been signed out.", loggedOutUser.getUsername()));
 		return new ResponseObject<UserDto>(logoutSuccess, loggedOutUser);
+	}
+
+	@ResponseStatus(code = HttpStatus.OK)
+	@PostMapping("/forgot-password")
+	public ResponseObject<String> forgotPasswordRequest(@RequestBody ForgotPasswordFormDto forgotPasswordRequest) throws Exception {
+		logger.info("POST /auth/forgot-password endpoint accessed");
+		
+		validatingService.valiadteForgotPasswordRequest(forgotPasswordRequest);
+		
+		String resMessage = userService.requestPasswordResetForUser(forgotPasswordRequest.getEmail());
+		
+		logger.info("POST /auth/forgot-password returning with the success message");
+		return new ResponseObject<String>(resMessage, resMessage);
+	}
+
+	@ResponseStatus(code = HttpStatus.OK)
+	@PostMapping("/reset-password")
+	public ResponseObject<String> passwordResetRequest(@RequestParam String passwordResetToken, @RequestBody PasswordResetFormDto passwordResetForm) throws Exception {
+		logger.info("POST /auth/reset-password endpoint accessed");
+		
+		validatingService.valiadtePasswordResetRequest(passwordResetForm, passwordResetToken);
+		
+		String resMessage = userService.resetPasswordForUser(passwordResetForm, passwordResetToken);
+		
+		logger.info("POST /auth/reset-password returning with the success message");
+		return new ResponseObject<String>(resMessage, resMessage);
 	}
 }

@@ -1,7 +1,9 @@
 package com.laundrysystem.backendapi.helpers;
 
+import java.sql.Timestamp;
 import java.util.List;
 import java.util.Optional;
+import java.util.Random;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -11,6 +13,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import com.laundrysystem.backendapi.entities.LaundryAsset;
@@ -18,6 +21,7 @@ import com.laundrysystem.backendapi.entities.PaymentCard;
 import com.laundrysystem.backendapi.entities.Residence;
 import com.laundrysystem.backendapi.entities.User;
 import com.laundrysystem.backendapi.entities.UserResidence;
+import com.laundrysystem.backendapi.exceptions.ApiBadRequestException;
 import com.laundrysystem.backendapi.exceptions.DbException;
 import com.laundrysystem.backendapi.exceptions.EntryNotFoundException;
 import com.laundrysystem.backendapi.repositories.interfaces.IPaymentCardRepository;
@@ -30,11 +34,14 @@ public class UserDataHelper {
 	
 	@Autowired
 	private AuthenticationManager authenticationManager;
-	
 	@Autowired
 	private IUserRepository userRepository;
 	@Autowired
 	private IPaymentCardRepository paymentCardRepository;
+	@Autowired
+	private PasswordEncoder passwordEncoder;
+
+	private static final int MINUTES_TO_RESET_PASSWORD = 30;
 
 	public Residence getUserResidence(User user) throws EntryNotFoundException, DbException {
 		logger.info(String.format("Finding the current residence for user with userId=%d.", user.getId()));
@@ -132,5 +139,47 @@ public class UserDataHelper {
 		SecurityContextHolder.getContext().setAuthentication(authentication);
 		
 		return authentication;
+	}
+
+	public String generatePassword(String password) {
+		return passwordEncoder.encode(password);
+	}
+
+	public String generateSecureToken() {
+		int leftLimit = 48; // numeral '0'
+		int rightLimit = 122; // letter 'z'
+		int targetStringLength = 16;
+		Random random = new Random();
+
+		String generatedString = random.ints(leftLimit, rightLimit + 1)
+		.filter(i -> (i <= 57 || i >= 65) && (i <= 90 || i >= 97))
+		.limit(targetStringLength)
+		.collect(StringBuilder::new, StringBuilder::appendCodePoint, StringBuilder::append)
+		.toString();
+		
+		return generatedString;
+	}
+
+	public Timestamp generateTimeToResetPassword() {
+		long curTs = Formatting.getCurTimestamp().getTime();
+		long resetPasswordUntilTs = curTs + Formatting.convertMinuteToMs(MINUTES_TO_RESET_PASSWORD);
+
+		return new Timestamp(resetPasswordUntilTs);
+	}
+
+	public void validateResetPasswordData(User user, String passwordResetToken) throws ApiBadRequestException {
+		logger.info(String.format("Checking resetPasswordData validity for the user with id=%d, with passwordResetToken=%s", user.getId(), passwordResetToken));
+	
+		if (!passwordResetToken.equals(user.getPasswordResetToken())) {
+			logger.error(String.format("User's passwordResetToken=%s did not match the received passwordResetToken=%s", user.getPasswordResetToken(), passwordResetToken));
+			throw new ApiBadRequestException();
+		}
+
+		long curTs = Formatting.getCurTimestamp().getTime();
+		long passwordTokenExpirationTs = user.getPasswordResetValidUntil().getTime();
+		if (curTs > passwordTokenExpirationTs) {
+			logger.error(String.format("User's passwordResetToken=%s has expired on=%s", passwordResetToken, user.getPasswordResetValidUntil()));
+			throw new ApiBadRequestException();
+		}
 	}
 }

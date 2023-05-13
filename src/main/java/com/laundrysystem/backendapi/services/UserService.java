@@ -7,18 +7,22 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.laundrysystem.backendapi.dtos.AuthRequest;
+import com.laundrysystem.backendapi.dtos.EmailDto;
+import com.laundrysystem.backendapi.dtos.PasswordResetFormDto;
 import com.laundrysystem.backendapi.dtos.UserDto;
 import com.laundrysystem.backendapi.entities.User;
 import com.laundrysystem.backendapi.enums.UserRole;
+import com.laundrysystem.backendapi.exceptions.ApiBadRequestException;
+import com.laundrysystem.backendapi.exceptions.ApiRuntimeException;
 import com.laundrysystem.backendapi.exceptions.DbException;
 import com.laundrysystem.backendapi.helpers.UserDataHelper;
 import com.laundrysystem.backendapi.mappers.UserMapper;
 import com.laundrysystem.backendapi.repositories.interfaces.IUserRepository;
+import com.laundrysystem.backendapi.services.interfaces.IEmailService;
 import com.laundrysystem.backendapi.services.interfaces.IUserService;
 import com.laundrysystem.backendapi.utils.JwtUtils;
 import com.laundrysystem.backendapi.utils.UserDetailsHelper;
@@ -26,19 +30,18 @@ import com.laundrysystem.backendapi.utils.UserDetailsHelper;
 @Service
 public class UserService implements IUserService  {
 	private static final Logger logger = LoggerFactory.getLogger(UserService.class);
+	private static final String PASSWORD_SUCC_UPDATED = "Password has been successfully updated";
+	private static final String PASSWORD_EMAIL_SENT = "The email has been sent successfully";
 	
 	@Autowired
 	private IUserRepository userRepository;
-	
 	@Autowired
 	private UserDataHelper userDataHelper;
-	
+	@Autowired
+	private IEmailService emailService;
 	@Autowired
 	private JwtUtils jwtUtils;
-	
-	@Autowired
-	private PasswordEncoder passwordEncoder;
-	
+
 //	@Transactional
 //	public UserDto createUser(AuthRequest signupRequest) throws DbException {
 //		User user = new User(
@@ -119,7 +122,7 @@ public class UserService implements IUserService  {
 		try {
 			user = userRepository.findByUsername(username);			
 		} catch (Exception exc) {
-			logger.error(String.format("Error occurred while removing fetching the user with [userId=%d]. - [err=%s]", username, exc.getMessage()));
+			logger.error(String.format("Error occurred while removing fetching the user with [username=%s]. - [err=%s]", username, exc.getMessage()));
 			throw new DbException();
 		}
 		
@@ -129,5 +132,53 @@ public class UserService implements IUserService  {
 		}
 		
 		return user;
+	}
+
+	@Transactional
+	public String requestPasswordResetForUser(String email) throws ApiBadRequestException, DbException, ApiRuntimeException {
+		logger.info(String.format("Attempting to find the user with [email=%s].", email));
+	
+		User user;
+		try {
+			user = userRepository.findByEmail(email);
+		} catch (Exception exc) {
+			logger.error(String.format("Error occurred while removing fetching the user with [email=%s]. - [err=%s]", email, exc.getMessage()));
+			throw new DbException();
+		}
+		
+		if (user == null) {
+			logger.warn(String.format("User not found with [email=%s].", email));
+			throw new ApiBadRequestException();
+		}
+
+		try {
+			String passwordResetToken = userDataHelper.generateSecureToken();
+			Timestamp passwordResetValidUntil = userDataHelper.generateTimeToResetPassword();	
+			user = userRepository.generateResetPasswordData(user, passwordResetToken, passwordResetValidUntil);
+		} catch (Exception exc) {
+			logger.error(String.format("Error occurred while generating the reset password data for the user with [id=%d]. - [err=%s]", user.getId(), exc.getMessage()));
+			throw new DbException();
+		}
+
+		EmailDto emailDto = emailService.generatePasswordResetEmail(email, user.getPasswordResetToken());
+		emailService.sendSimpleMail(emailDto);
+		
+		return PASSWORD_EMAIL_SENT;
+	}
+
+	@Transactional
+	public String resetPasswordForUser(PasswordResetFormDto passwordResetForm, String passwordResetToken) throws UsernameNotFoundException, ApiBadRequestException, DbException {
+		User user = fetchUserByUsername(passwordResetForm.getUsername());		
+		userDataHelper.validateResetPasswordData(user, passwordResetToken);
+
+		try {
+			String encrPassword = userDataHelper.generatePassword(passwordResetForm.getPassword());
+			user = userRepository.resetPasswordForUser(user, encrPassword);
+		} catch (Exception exc) {
+			logger.error(String.format("An error occurred while attempting to reset password for the user with userId=%d", user.getId()));
+			throw new DbException();
+		}
+		
+		return PASSWORD_SUCC_UPDATED;
 	}
 }

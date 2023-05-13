@@ -6,7 +6,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import com.laundrysystem.backendapi.dtos.LaundryAssetDto;
@@ -42,8 +41,6 @@ public class ResidenceAdminService implements IResidenceAdminService {
 	private IUserService userService;
 	@Autowired
 	private UserDataHelper userDataHelper;
-	@Autowired
-	private PasswordEncoder passwordEncoder;
 	
 	private static final Logger logger = LoggerFactory.getLogger(ResidenceAdminService.class);
 	
@@ -56,7 +53,7 @@ public class ResidenceAdminService implements IResidenceAdminService {
 				residenceAdmin.getId(), tenantRegForm.toString(), curResidence.getId()));
 		
 		User newTenant = UserMapper.tenantRegFormToUserMap(tenantRegForm, curResidence);
-		newTenant.setPassword(passwordEncoder.encode(tenantRegForm.getPassword()));	// encoding password
+		newTenant.setPassword(userDataHelper.generatePassword(tenantRegForm.getPassword()));
 		
 		try {
 			userRepository.save(newTenant);
@@ -114,7 +111,7 @@ public class ResidenceAdminService implements IResidenceAdminService {
 				residenceAdmin.getId(), residenceAdminRegForm.toString(), curResidence.getId()));
 		
 		User newResidenceAdmin = UserMapper.residenceAdminFormToUserMap(residenceAdminRegForm, curResidence);
-		newResidenceAdmin.setPassword(passwordEncoder.encode(residenceAdminRegForm.getPassword()));	// encoding password
+		newResidenceAdmin.setPassword(userDataHelper.generatePassword(residenceAdminRegForm.getPassword()));
 		
 		try {
 			userRepository.save(newResidenceAdmin);

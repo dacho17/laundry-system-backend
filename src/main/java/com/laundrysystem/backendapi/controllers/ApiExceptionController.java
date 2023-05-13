@@ -18,7 +18,7 @@ import com.laundrysystem.backendapi.exceptions.ForbiddenActionException;
 @RestControllerAdvice
 public class ApiExceptionController {
 
-	private static final String errorInRequest = "The information you provided could not be processed. Please check that the information you provided has been entered correctly.";
+	private static final String errorInRequest = "Please check that the information you provided has been entered correctly.";
 	private static final String databaseConflictError = "This action can not be performed.";
 	private static final String errorReadingReq ="Exception occurred while reading the request data.";
 	private static final String dataNotFound = "Data received from request was not found.";

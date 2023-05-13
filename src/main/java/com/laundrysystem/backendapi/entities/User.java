@@ -50,6 +50,12 @@ public class User implements Serializable {
 	
 	@Column(name = "mobile_number")
 	private String mobileNumber;
+
+	@Column(name = "password_reset_token")
+	private String passwordResetToken;
+
+	@Column(name = "password_reset_valid_until")
+	private Timestamp passwordResetValidUntil;
 	
 	@OneToMany(mappedBy = "user", cascade = {CascadeType.PERSIST, CascadeType.MERGE,
 		CascadeType.DETACH, CascadeType.REFRESH})
@@ -91,9 +97,9 @@ public class User implements Serializable {
 		this.mobileNumber = mobileNumber;
 	}
 
-	public User(int id, Timestamp createdDate, String username, String password, short role, String name, String surname, String jwt, String email, String mobileNumber,
-			List<PaymentCard> paymentCards, List<Booking> bookings, List<Purchase> purchases,
-			List<UserResidence> userResidences) {
+	public User(int id, Timestamp createdDate, String username, String password, short role, String name, String surname,
+		String jwt, String email, String mobileNumber, String passwordResetToken, Timestamp passwordResetValidUntil,
+		List<PaymentCard> paymentCards, List<Booking> bookings, List<Purchase> purchases, List<UserResidence> userResidences) {
 		super();
 		this.id = id;
 		this.createdDate = createdDate;
@@ -105,6 +111,8 @@ public class User implements Serializable {
 		this.jwt = jwt;
 		this.email = email;
 		this.mobileNumber = mobileNumber;
+		this.passwordResetToken = passwordResetToken;
+		this.passwordResetValidUntil = passwordResetValidUntil;
 		this.paymentCards = paymentCards;
 		this.bookings = bookings;
 		this.purchases = purchases;
@@ -191,6 +199,23 @@ public class User implements Serializable {
 		this.mobileNumber = mobileNumber;
 	}
 
+
+	public String getPasswordResetToken() {
+		return passwordResetToken;
+	}
+
+	public void setPasswordResetToken(String passwordResetToken) {
+		this.passwordResetToken = passwordResetToken;
+	}
+
+	public Timestamp getPasswordResetValidUntil() {
+		return passwordResetValidUntil;
+	}
+
+	public void setPasswordResetValidUntil(Timestamp passwordResetValidUntil) {
+		this.passwordResetValidUntil = passwordResetValidUntil;
+	}
+
 	public List<PaymentCard> getPaymentCards() {
 		return paymentCards;
 	}
@@ -235,6 +260,7 @@ public class User implements Serializable {
 	public String toString() {
 		return "User [id=" + id + ", createdDate=" + createdDate + ", username=" + username + ", password=" + password
 				+ ", role=" + role + ", jwt=" + jwt + ", name=" + name + ", surname=" + surname + ", email=" + email
-				+ ", mobileNumber=" + mobileNumber + "]";
+				+ ", mobileNumber=" + mobileNumber + ", passwordResetToken=" + passwordResetToken
+				+ ", passwordResetValidUntil=" + passwordResetValidUntil + "]";
 	}
 }

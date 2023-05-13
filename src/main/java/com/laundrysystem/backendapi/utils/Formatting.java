@@ -8,9 +8,14 @@ import java.util.List;
 import java.util.TimeZone;
 
 public class Formatting {
+	private static final long MINUTES_TO_MS_MULTIPLIER = 60000;
 
 	public static Timestamp getCurTimestamp() {
 		return new Timestamp(System.currentTimeMillis());
+	}
+
+	public static long convertMinuteToMs(int minutes) {
+		return minutes * MINUTES_TO_MS_MULTIPLIER;
 	}
 	
 	public static String timestampToDateStr(Timestamp timestamp) {

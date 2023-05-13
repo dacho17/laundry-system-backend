@@ -1,11 +1,11 @@
 package com.laundrysystem.backendapi.repositories;
 
+import java.sql.Timestamp;
 import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
-
 import com.laundrysystem.backendapi.entities.User;
 import com.laundrysystem.backendapi.entities.UserResidence;
 import com.laundrysystem.backendapi.enums.UserRole;
@@ -117,5 +117,41 @@ public class UserRepository implements IUserRepository {
 			logger.info(String.format("No users have been found with the username=%s.", username));
 			return null;
 		}
+	}
+
+	public User findByEmail(String email) {
+		CriteriaBuilder cb = entityManager.getCriteriaBuilder();
+	    CriteriaQuery<User> query = cb.createQuery(User.class);
+	    Root<User> root = query.from(User.class);
+	    query = query.select(root)
+			.where(cb.equal(root.get("email"), email));
+	    
+	    try {
+	    	return entityManager.createQuery(query).getSingleResult();
+		} catch (NoResultException exc) {	// exception occurs because getSingleResult throws it if not entries have been found
+			logger.info(String.format("No users have been found with the email=%s.", email));
+			return null;
+		}
+	}
+
+	public User generateResetPasswordData(User user, String passwordResetToken, Timestamp passwordResetValidUntil) {
+		logger.info(String.format("Attempting to set passwordResetToken and passwordResetValidUntil for user with id=%d", user.getId()));
+		user.setPasswordResetToken(passwordResetToken);
+		user.setPasswordResetValidUntil(passwordResetValidUntil);
+		
+		user = update(user);
+
+		return user;
+	}
+
+	public User resetPasswordForUser(User user, String encrPass) {
+		logger.info(String.format("Resetting the password for user with userId=%d", user.getId()));
+		user.setPasswordResetToken(null);
+		user.setPasswordResetValidUntil(null);
+		user.setPassword(encrPass);
+
+		user = update(user);
+
+		return user;
 	}
 }

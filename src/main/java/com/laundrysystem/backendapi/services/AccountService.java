@@ -33,7 +33,7 @@ public class AccountService implements IAccountService {
 	public AccountInformationDto getAccountInformation() throws EntryNotFoundException, DbException {
 		User user = userDataHelper.getActiveUser();
 		
-		logger.info("Assembling the AccountInformationDto for the user with userId=%d", user.getId());
+		logger.info(String.format("Assembling the AccountInformationDto for the user with userId=%d", user.getId()));
 		Residence curResidence = userDataHelper.getUserResidence(user);
 		
 		UpdateUserInfoForm userData = UserMapper.toUserInfoForm(user);

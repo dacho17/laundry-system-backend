@@ -20,9 +20,12 @@ CREATE TABLE IF NOT EXISTS `users` (
 	`surname` varchar(255) NOT NULL,
 	`email` varchar(255) NOT NULL,
 	`mobile_number` varchar(255) NOT NULL,
---	TODO: forgotPassword functionality related columns
-	UNIQUE (`username`)
+	`password_reset_token` varchar(255) DEFAULT NULL,
+	`password_reset_valid_until` datetime DEFAULT NULL,
+	UNIQUE (`username`),
+	UNIQUE (`email`),
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+-- email could be unique in combination with isUserActive flag. This would allow the user to create a new profile with the same email
 
 CREATE TABLE IF NOT EXISTS `addresses` (
 	`id` int PRIMARY KEY NOT NULL AUTO_INCREMENT,
