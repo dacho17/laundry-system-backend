@@ -5,14 +5,16 @@ import com.laundrysystem.backendapi.enums.UserRole;
 public class UserDto {
 	private String username;
 	private UserRole role;
+	private int loyaltyPoints;
 	private String jwt;
 	
 	public UserDto() {}
 
-	public UserDto(String username, UserRole role, String jwt) {
+	public UserDto(String username, UserRole role, int loyaltyPoints, String jwt) {
 		super();
 		this.username = username;
 		this.role = role;
+		this.loyaltyPoints = loyaltyPoints;
 		this.jwt = jwt;
 	}
 
@@ -32,6 +34,14 @@ public class UserDto {
 		this.role = role;
 	}
 
+	public int getLoyaltyPoints() {
+		return loyaltyPoints;
+	}
+
+	public void setLoyaltyPoints(int loyaltyPoints) {
+		this.loyaltyPoints = loyaltyPoints;
+	}
+
 	public String getJwt() {
 		return jwt;
 	}
@@ -42,6 +52,6 @@ public class UserDto {
 
 	@Override
 	public String toString() {
-		return "UserDto [username=" + username + ", role=" + role + ", jwt=" + jwt + "]";
+		return "UserDto [username=" + username + ", role=" + role + ", loyaltyPoints=" + loyaltyPoints + ", jwt=" + jwt + "]";
 	}
 }

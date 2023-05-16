@@ -24,6 +24,15 @@ public class Purchase {
 	@Column(name = "created_date")
 	private Timestamp createdDate;
 	
+	@Column(name = "amount_paid")
+	private Double amountPaid;
+
+	@Column(name = "paid_in_currency")
+	private String paidInCurrency;
+
+	@Column(name = "loyalty_points_used")
+	private Integer loyaltyPointsUsed;
+
 	@ManyToOne(cascade = {CascadeType.PERSIST, CascadeType.MERGE,
 			CascadeType.DETACH, CascadeType.REFRESH})
 	@JoinColumn(name = "user_id", referencedColumnName = "id")
@@ -46,14 +55,24 @@ public class Purchase {
 	
 	public Purchase() {}
 	
-	public Purchase(Timestamp createdDate, User user, PaymentCard paymentCard, LaundryAsset laundryAsset) {
+	public Purchase(Timestamp createdDate, double amountPaid, String paidInCurrency,
+		User user, PaymentCard paymentCard, LaundryAsset laundryAsset) {
 		super();
 		this.createdDate = createdDate;
+		this.amountPaid = amountPaid;
+		this.paidInCurrency = paidInCurrency;
 		this.user = user;
 		this.paymentCard = paymentCard;
 		this.laundryAsset = laundryAsset;
 	}
 	
+	public Purchase(Timestamp createdDate, int loyaltyPointsUsed, User user, LaundryAsset laundryAsset) {
+		this.createdDate = createdDate;
+		this.loyaltyPointsUsed = loyaltyPointsUsed;
+		this.user = user;
+		this.laundryAsset = laundryAsset;
+	}
+
 	public Purchase(int id, Timestamp createdDate, User user, PaymentCard paymentCard, LaundryAsset laundryAsset,
 			Booking booking) {
 		super();
@@ -79,6 +98,30 @@ public class Purchase {
 
 	public void setCreatedDate(Timestamp createdDate) {
 		this.createdDate = createdDate;
+	}
+
+	public Double getAmountPaid() {
+		return amountPaid;
+	}
+
+	public void setAmountPaid(double amountPaid) {
+		this.amountPaid = amountPaid;
+	}
+
+	public String getPaidInCurrency() {
+		return paidInCurrency;
+	}
+
+	public void setPaidInCurrency(String paidInCurrency) {
+		this.paidInCurrency = paidInCurrency;
+	}
+
+	public Integer getLoyaltyPointsUsed() {
+		return loyaltyPointsUsed;
+	}
+
+	public void setLoyaltyPointsUsed(int loyaltyPointsUsed) {
+		this.loyaltyPointsUsed = loyaltyPointsUsed;
 	}
 
 	public User getUser() {

@@ -9,6 +9,7 @@ import org.springframework.stereotype.Repository;
 import com.laundrysystem.backendapi.entities.User;
 import com.laundrysystem.backendapi.entities.Tenancy;
 import com.laundrysystem.backendapi.enums.UserRole;
+import com.laundrysystem.backendapi.exceptions.ApiBadRequestException;
 import com.laundrysystem.backendapi.repositories.interfaces.IUserRepository;
 
 import jakarta.persistence.EntityManager;
@@ -154,5 +155,14 @@ public class UserRepository implements IUserRepository {
 		user = update(user);
 
 		return user;
+	}
+
+	public User updateLoyaltyPointBalance(User user, int newPointBalance) {
+		logger.info(String.format("Updating loyaltyPoints for user with [id=%d]. - {currentBalance=%d, balanceAfterChange=%d}",
+			user.getId(), user.getLoyaltyPoints(), newPointBalance));
+		
+		user.setLoyaltyPoints(newPointBalance);
+
+		return update(user);
 	}
 }

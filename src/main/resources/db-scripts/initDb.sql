@@ -23,6 +23,7 @@ CREATE TABLE IF NOT EXISTS `users` (
 	`mobile_number` varchar(255) NOT NULL,
 	`password_reset_token` varchar(255) DEFAULT NULL,
 	`password_reset_valid_until` datetime DEFAULT NULL,
+	`loyalty_points` int DEFAULT 0
 	UNIQUE (`username`),
 	UNIQUE (`email`),
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
@@ -82,6 +83,24 @@ CREATE TABLE IF NOT EXISTS `payment_cards` (
     FOREIGN KEY (`user_id`) REFERENCES `users` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
+CREATE TABLE IF NOT EXISTS `loyalty_offers` (
+	`id` int PRIMARY KEY NOT NULL AUTO_INCREMENT,
+	`created_date` datetime NOT NULL,
+	`name` varchar(255) NOT NULL,
+	`price` decimal NOT NULL,
+	`currency` varchar(5) NOT NULL,
+	`loyalty_points` int NOT NULL,
+	`expiry_date` datetime NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+CREATE TABLE IF NOT EXISTS `loyalty_offer_purchases` (
+	`id` int PRIMARY KEY NOT NULL AUTO_INCREMENT,
+	`created_date` datetime NOT NULL,
+	`loyalty_offer_id` int NOT NULL,
+	`payment_card_id` int NOT NULL,
+	`user_id` int NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
 CREATE TABLE IF NOT EXISTS `bookings` (
 	`id` int PRIMARY KEY NOT NULL AUTO_INCREMENT,
 	`created_date` datetime NOT NULL,
@@ -97,8 +116,11 @@ CREATE TABLE IF NOT EXISTS `bookings` (
 CREATE TABLE IF NOT EXISTS `purchases` (
 	`id` int PRIMARY KEY NOT NULL AUTO_INCREMENT,
 	`created_date` datetime NOT NULL,
+	`amount_paid` decimal DEFAULT NULL,
+	`paid_in_currency` varchar(5) DEFAULT NULL,
+	`loyalty_points_used` int DEFAULT NULL,
     `user_id` int NOT NULL,
-    `payment_card_id` int NOT NULL,
+    `payment_card_id` int DEFAULT NULL,
     `laundry_asset_id` int NOT NULL,
     `booking_id` int NOT NULL,
     FOREIGN KEY (`user_id`) REFERENCES `users`(`id`),

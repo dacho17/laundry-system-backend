@@ -29,6 +29,7 @@ public class UserMapper {
 		return new UserDto(
 			user.getUsername(),
 			UserRole.getRole(user.getRole()),
+			user.getLoyaltyPoints(),
 			user.getJwt()
 		);
 	}

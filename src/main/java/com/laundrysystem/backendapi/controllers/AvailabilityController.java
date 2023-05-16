@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.laundrysystem.backendapi.dtos.BookingRequestDto;
 import com.laundrysystem.backendapi.dtos.PurchaseDto;
+import com.laundrysystem.backendapi.dtos.PurchaseRequestDto;
 import com.laundrysystem.backendapi.dtos.ResponseObject;
 import com.laundrysystem.backendapi.dtos.TimeslotAvailabilityDto;
 import com.laundrysystem.backendapi.services.ValidatingService;
@@ -46,12 +47,12 @@ public class AvailabilityController {
 	
 	@ResponseStatus(code = HttpStatus.CREATED)
 	@PostMapping("/purchase")
-	public ResponseObject<PurchaseDto> purchaseLaundryService(@RequestBody BookingRequestDto purchaseRequestDto) throws Exception {
+	public ResponseObject<PurchaseDto> purchaseLaundryService(@RequestBody PurchaseRequestDto purchaseRequestDto) throws Exception {
 		logger.info("POST /availability/purchase endpoint accessed");
 		
 		validatingService.validateIncomingPurchaseRequest(purchaseRequestDto);
 		
-		PurchaseDto newPurchase = bookingService.purchaseLaundryService(purchaseRequestDto.getAssetId());
+		PurchaseDto newPurchase = bookingService.purchaseLaundryService(purchaseRequestDto.getAssetId(), purchaseRequestDto.getIsPayingWithLoyaltyPoints());
 		
 		logger.info("POST /availability/purchase returning with the success message");
 		return new ResponseObject<PurchaseDto>(SUCCESSFUL_PURCHASE, newPurchase);

@@ -87,6 +87,7 @@ public class UserDataHelper {
 		PaymentCard activePaymentCard = paymentCardRepository.getActivePaymentCardForUser(user.getId());
 		
 		if (activePaymentCard == null) {
+			logger.error(String.format("User with id=%d has no active payment card"), user.getId());
 			throw new EntryNotFoundException("Please register a payment method to proceed.");
 		}
 		

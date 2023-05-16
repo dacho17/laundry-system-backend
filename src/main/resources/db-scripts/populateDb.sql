@@ -2,8 +2,8 @@
 
 select 'Population script started executing' AS '';
 
-INSERT INTO users (created_date, username, `password`, `role`, `name`, surname, email, mobile_number)
-VALUES (CURRENT_TIMESTAMP(), 'resadmin', '$2a$10$Btc3JSGM5X7kNg6xEsf4HO57TX2nxZA/YFpruLccjRFqjf.v5yvLa', 2, 'Residence', 'Admin', 'admin@admin.my', '12344321');
+INSERT INTO users (created_date, username, `password`, `role`, `name`, surname, email, mobile_number, loyalty_points)
+VALUES (CURRENT_TIMESTAMP(), 'resadmin', '$2a$10$Btc3JSGM5X7kNg6xEsf4HO57TX2nxZA/YFpruLccjRFqjf.v5yvLa', 2, 'Residence', 'Admin', 'admin@admin.my', '12344321', 0);
 SET @resAdminId := (SELECT id FROM users where username = 'resadmin');
 
 INSERT INTO addresses (created_date, street_name, street_number, postal_code, city, country)
@@ -28,5 +28,10 @@ VALUES
 (CURRENT_TIMESTAMP(), 'Washing Machine 3', 1, 45, 5, 'MYR', 1, @resAddressId),
 (CURRENT_TIMESTAMP(), 'Drying Machine 3', 2, 35, 5, 'MYR', 1, @resAddressId),
 (CURRENT_TIMESTAMP(), 'Washing Machine 4', 1, 45, 5, 'MYR', 0, @resAddressId);
+
+INSERT INTO loyalty_offers (created_date, name, price, currency, loyalty_points, expiry_date)
+VALUES
+(CURRENT_TIMESTAMP(), '10 for 8', 40, 'MYR', 50, TIMESTAMPADD(MONTH, 6, CURRENT_TIMESTAMP())),
+(CURRENT_TIMESTAMP(), '20 for 12', 60, 'MYR', 100, TIMESTAMPADD(MONTH, 6, CURRENT_TIMESTAMP()));
 
 select 'Population script finished executing' AS '';

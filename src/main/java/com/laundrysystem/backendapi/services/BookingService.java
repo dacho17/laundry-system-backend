@@ -9,7 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.laundrysystem.backendapi.dtos.ActiveBookingsDto;
-import com.laundrysystem.backendapi.dtos.ActivityDto;
+import com.laundrysystem.backendapi.dtos.ActivityHistoryEntryDto;
 import com.laundrysystem.backendapi.dtos.BookingDto;
 import com.laundrysystem.backendapi.dtos.BookingRequestDto;
 import com.laundrysystem.backendapi.dtos.DailyBookingRequestDto;
@@ -23,19 +23,23 @@ import com.laundrysystem.backendapi.entities.LaundryAssetUse;
 import com.laundrysystem.backendapi.entities.PaymentCard;
 import com.laundrysystem.backendapi.entities.Purchase;
 import com.laundrysystem.backendapi.entities.User;
+import com.laundrysystem.backendapi.exceptions.ApiBadRequestException;
 import com.laundrysystem.backendapi.exceptions.DbException;
 import com.laundrysystem.backendapi.exceptions.EntryNotFoundException;
 import com.laundrysystem.backendapi.exceptions.ForbiddenActionException;
 import com.laundrysystem.backendapi.helpers.ActivityHelper;
 import com.laundrysystem.backendapi.helpers.BookingServiceHelper;
+import com.laundrysystem.backendapi.helpers.LoyaltyProgramHelper;
 import com.laundrysystem.backendapi.helpers.UserDataHelper;
 import com.laundrysystem.backendapi.mappers.BookingMapper;
 import com.laundrysystem.backendapi.mappers.LaundryAssetMapper;
 import com.laundrysystem.backendapi.mappers.LaundryAssetUseMapper;
 import com.laundrysystem.backendapi.mappers.PurchaseMapper;
+import com.laundrysystem.backendapi.repositories.UserRepository;
 import com.laundrysystem.backendapi.repositories.interfaces.IBookingRepository;
 import com.laundrysystem.backendapi.repositories.interfaces.ILaundryAssetUseRepository;
 import com.laundrysystem.backendapi.repositories.interfaces.IPurchaseRepository;
+import com.laundrysystem.backendapi.repositories.interfaces.IUserRepository;
 import com.laundrysystem.backendapi.services.interfaces.IBookingService;
 
 import jakarta.transaction.Transactional;
@@ -49,15 +53,17 @@ public class BookingService implements IBookingService {
 	@Autowired
 	private ILaundryAssetUseRepository laundryAssetUseRepository;
 	@Autowired
+	private IUserRepository userRepository;
+	@Autowired
 	private UserDataHelper userDataHelper;
 	
 	private static final Logger logger = LoggerFactory.getLogger(BookingService.class);
 	
-	public List<ActivityDto> getUserActivities() throws EntryNotFoundException, DbException {
+	public List<ActivityHistoryEntryDto> getUserActivities() throws EntryNotFoundException, DbException {
 		User user = userDataHelper.getActiveUser();
 		logger.info(String.format("Fetching user activities for the user with userId=%d", user.getId()));
 	
-		List<ActivityDto> userActivities = ActivityHelper.formatAndMapUserActivities(user);
+		List<ActivityHistoryEntryDto> userActivities = ActivityHelper.formatAndMapUserActivities(user);
 		
 		return userActivities;
 	}
@@ -85,27 +91,27 @@ public class BookingService implements IBookingService {
 	}
 	
 	@Transactional
-	public PurchaseDto purchaseLaundryService(int assetId) throws DbException, EntryNotFoundException {
+	public PurchaseDto purchaseLaundryService(int assetId, boolean isPayingWithLoyaltyPoints) throws DbException, EntryNotFoundException, ApiBadRequestException {
 		User user = userDataHelper.getActiveUser();
 		
 		List<LaundryAsset> laundryAssets = userDataHelper.getAccessibleLaundryAssets(user);
-		PaymentCard activePaymentCard = userDataHelper.getActivePaymentCardFor(user);
 		LaundryAsset assetToBeUsed = BookingServiceHelper.getTargetLaundryAsset(assetId, laundryAssets);
 
-		// preparing purchase object for storing
-		Purchase newPurchase = new Purchase(
-			new Timestamp(System.currentTimeMillis()),
-			user,
-			activePaymentCard,
-			assetToBeUsed
-		);
-			
+		// check payment card presence or make sufficient point balance check based on the means of purchase
+		if (isPayingWithLoyaltyPoints) {
+			int currentPointBalance = user.getLoyaltyPoints();
+			int assetPriceInPoints = LoyaltyProgramHelper.convertCashPriceToLoyaltyPointsPrice(assetToBeUsed.getServicePrice(), assetToBeUsed.getCurrency());
+			if (assetPriceInPoints > currentPointBalance) {
+				logger.error(String.format("User with id=%d attempted to make a purchase of cost=[%s] with insufficient pointBalance=%d",
+					user.getId(), String.valueOf(assetToBeUsed.getServicePrice()) + assetToBeUsed.getCurrency(), user.getLoyaltyPoints()));
+				throw new ApiBadRequestException();
+			}
+		}
+
 		// storing booking/s to the database and connecting purchase object to the later booking
 		List<PurchaseBooking> slotsToBook;
 		if (BookingServiceHelper.isAllowedToPurchase(assetToBeUsed, user)) {
 			slotsToBook = BookingServiceHelper.getSlotsToBook(user, assetToBeUsed);
-			System.out.println(slotsToBook.get(0));
-			System.out.println(slotsToBook.get(1));
 			try {
 				for (PurchaseBooking bookingToBook: slotsToBook) {
 					if (!bookingToBook.getIsAlreadyCreated()) {
@@ -129,10 +135,41 @@ public class BookingService implements IBookingService {
 				user.getId(), assetToBeUsed.getId()));
 			throw new ForbiddenActionException();
 		}
-		
-		// TODO: make a payment card charge!
-		logger.info(String.format("The card (cardId=%d) has succesfully been charged.", activePaymentCard.getId()));
-		
+
+		// creating new purchase after booking/s have been made
+		Purchase newPurchase;
+		if (isPayingWithLoyaltyPoints) {
+			int assetPriceInPoints = LoyaltyProgramHelper.convertCashPriceToLoyaltyPointsPrice(assetToBeUsed.getServicePrice(), assetToBeUsed.getCurrency());
+			newPurchase = new Purchase(
+				new Timestamp(System.currentTimeMillis()),
+				assetPriceInPoints,
+				user,
+				assetToBeUsed
+			);
+
+			try {	// deduct point balance
+				int currentPointBalance = user.getLoyaltyPoints();
+				int newPointBalance = currentPointBalance - assetPriceInPoints;
+				userRepository.updateLoyaltyPointBalance(user, newPointBalance);
+			} catch (Exception exc) {
+				logger.error(String.format("An error occured while updating user's [id=%d] loyalty point balance. - [err=%s]", user.getId(), exc.getStackTrace().toString()));
+					throw new DbException();
+			}
+		} else {
+			PaymentCard activePaymentCard = userDataHelper.getActivePaymentCardFor(user);
+			newPurchase = new Purchase(
+				new Timestamp(System.currentTimeMillis()),
+				assetToBeUsed.getServicePrice(),
+				assetToBeUsed.getCurrency(),
+				user,
+				activePaymentCard,
+				assetToBeUsed
+			);
+
+			// TODO: make a payment card charge!
+			logger.info(String.format("The card (cardId=%d) has succesfully been charged.", activePaymentCard.getId()));
+		}
+
 		// storing purchase in the db
 		try {
 			Booking bookingWithPurchase = slotsToBook.get(0).getBooking();

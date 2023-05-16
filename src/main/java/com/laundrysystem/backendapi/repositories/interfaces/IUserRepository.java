@@ -18,4 +18,6 @@ public interface IUserRepository {
 	
 	User generateResetPasswordData(User user, String passwordResetToken, Timestamp passwordResetValidUntil);
 	User resetPasswordForUser(User user, String encrPass);
+
+	User updateLoyaltyPointBalance(User user, int pointBalanceChange);
 }

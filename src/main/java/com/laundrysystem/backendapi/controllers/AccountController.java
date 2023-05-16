@@ -13,13 +13,17 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.laundrysystem.backendapi.dtos.AccountInformationDto;
 import com.laundrysystem.backendapi.dtos.ActivityDto;
+import com.laundrysystem.backendapi.dtos.ActivityHistoryEntryDto;
+import com.laundrysystem.backendapi.dtos.LoyaltyOfferDto;
 import com.laundrysystem.backendapi.dtos.PaymentCardsDto;
+import com.laundrysystem.backendapi.dtos.PurchaseLoyaltyOfferDto;
 import com.laundrysystem.backendapi.dtos.ResponseObject;
 import com.laundrysystem.backendapi.dtos.UpdatePaymentCardForm;
 import com.laundrysystem.backendapi.dtos.UpdateUserInfoForm;
 import com.laundrysystem.backendapi.services.ValidatingService;
 import com.laundrysystem.backendapi.services.interfaces.IAccountService;
 import com.laundrysystem.backendapi.services.interfaces.IBookingService;
+import com.laundrysystem.backendapi.services.interfaces.ILoyaltyProgramService;
 import com.laundrysystem.backendapi.services.interfaces.IPaymentCardService;
 
 import java.util.List;
@@ -34,22 +38,25 @@ public class AccountController {
 	@Autowired
 	private IBookingService bookingService;
 	@Autowired
+	private ILoyaltyProgramService loyaltyProgramService;
+	@Autowired
 	private ValidatingService validatingService;
 
 	private static final Logger logger = LoggerFactory.getLogger(AccountController.class);
 	private static final String NO_REGISTERED_CARDS = "No cards have been registered";
 	private static final String NEW_CARD_SUCCESSFULLY_REGISTERED = "New card successfully registered";
 	private static final String ACCOUNT_INFO_SUCCESSFULLY_UPDATED = "Account information successfully updated";
+	private static final String LOYALTY_OFFER_SUCCESSFULLY_PURCHASED = "Your Purchase was successfull";
 
 	@ResponseStatus(code = HttpStatus.OK)
 	@GetMapping("/activity-history")
-	public ResponseObject<List<ActivityDto>> getActivityHistory() throws Exception {
+	public ResponseObject<List<ActivityHistoryEntryDto>> getActivityHistory() throws Exception {
 		logger.info("GET /account/activity-history enpoint accessed.");
 
-		List<ActivityDto> activities = bookingService.getUserActivities();
+		List<ActivityHistoryEntryDto> activities = bookingService.getUserActivities();
 
 		logger.info("GET /account/activity-history returning result.");
-		return new ResponseObject<List<ActivityDto>>(null, activities);
+		return new ResponseObject<List<ActivityHistoryEntryDto>>(null, activities);
 	}
 
 	@ResponseStatus(code = HttpStatus.OK)
@@ -105,5 +112,29 @@ public class AccountController {
 
 		logger.info("POST /account/user-information returning updated user form");
 		return new ResponseObject<UpdateUserInfoForm>(ACCOUNT_INFO_SUCCESSFULLY_UPDATED, updatedForm);
+	}
+
+	@ResponseStatus(code = HttpStatus.OK)
+	@PostMapping("/loyalty-program/loyalty-offer")
+	public ResponseObject<String> purchaseLoyaltyOffer(@RequestBody PurchaseLoyaltyOfferDto purchaseLoyaltyOffer) throws Exception {
+		logger.info("POST /loyalty-program/loyalty-offer endpoint accessed");
+
+		validatingService.validatePurchaseLoyaltyOfferDto(purchaseLoyaltyOffer);
+
+		loyaltyProgramService.purchaseLoyaltyOffer(purchaseLoyaltyOffer.getLoyaltyOfferId());
+
+		logger.info("POST /loyalty-program/loyalty-offer returning response message");
+		return new ResponseObject<String>(LOYALTY_OFFER_SUCCESSFULLY_PURCHASED, LOYALTY_OFFER_SUCCESSFULLY_PURCHASED);
+	}
+
+	@ResponseStatus(code = HttpStatus.OK)
+	@GetMapping("/loyalty-program/loyalty-offers")
+	public ResponseObject<List<LoyaltyOfferDto>> getLoyaltyOffers() throws Exception {
+		logger.info("GET /loyalty-program/loyalty-offers endpoint accessed");
+
+		List<LoyaltyOfferDto> loyaltyOffers = loyaltyProgramService.getLoyaltyOffers();
+
+		logger.info("GET /loyalty-program/loyalty-offers returning response message");
+		return new ResponseObject<List<LoyaltyOfferDto>>(null, loyaltyOffers);
 	}
 }

@@ -49,6 +49,10 @@ public class PaymentCard {
 			CascadeType.DETACH, CascadeType.REFRESH})
 	private List<Purchase> purchases;
 
+	@OneToMany(mappedBy = "paymentCard", cascade = {CascadeType.PERSIST, CascadeType.MERGE,
+		CascadeType.DETACH, CascadeType.REFRESH})
+	private List<LoyaltyOfferPurchase> loyaltyOfferPurchases;
+
 	public PaymentCard() {}
 
 	public PaymentCard(Timestamp createdDate, boolean isBeingUsed, String token, String cardHolderName,
@@ -63,7 +67,7 @@ public class PaymentCard {
 	}
 	
 	public PaymentCard(int id, Timestamp createdDate, boolean isBeingUsed, String token, String cardHolderName,
-			String expiryDate, String lastFourDigits, User user, List<Purchase> purchases) {
+			String expiryDate, String lastFourDigits, User user, List<Purchase> purchases, List<LoyaltyOfferPurchase> loyaltyOfferPurchases) {
 		super();
 		this.createdDate = createdDate;
 		this.isBeingUsed = isBeingUsed;
@@ -73,6 +77,7 @@ public class PaymentCard {
 		this.lastFourDigits = lastFourDigits;
 		this.user = user;
 		this.purchases = purchases;
+		this.loyaltyOfferPurchases = loyaltyOfferPurchases;
 	}
 
 	public int getId() {
@@ -145,6 +150,14 @@ public class PaymentCard {
 
 	public void setPurchases(List<Purchase> purchases) {
 		this.purchases = purchases;
+	}
+
+	public List<LoyaltyOfferPurchase> getLoyaltyOfferPurchases() {
+		return loyaltyOfferPurchases;
+	}
+
+	public void setLoyaltyOfferPurchases(List<LoyaltyOfferPurchase> loyaltyOfferPurchases) {
+		this.loyaltyOfferPurchases = loyaltyOfferPurchases;
 	}
 
 	@Override

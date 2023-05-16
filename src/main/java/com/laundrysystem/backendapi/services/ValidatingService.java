@@ -16,6 +16,8 @@ import com.laundrysystem.backendapi.dtos.DailyBookingRequestDto;
 import com.laundrysystem.backendapi.dtos.ForgotPasswordFormDto;
 import com.laundrysystem.backendapi.dtos.LaundryAssetRegForm;
 import com.laundrysystem.backendapi.dtos.PasswordResetFormDto;
+import com.laundrysystem.backendapi.dtos.PurchaseLoyaltyOfferDto;
+import com.laundrysystem.backendapi.dtos.PurchaseRequestDto;
 import com.laundrysystem.backendapi.dtos.ResidenceAdminRegForm;
 import com.laundrysystem.backendapi.dtos.TenantRegForm;
 import com.laundrysystem.backendapi.dtos.UpdateUserInfoForm;
@@ -64,7 +66,6 @@ public class ValidatingService {
 		}
 	}
 	
-	// NOTE: trivial validation for the time being
 	public void validateAuthRequest(AuthRequest authRequest, String authType) throws ApiBadRequestException {
 		boolean isUsernameValid = validateUsername(authRequest.getUsername());
 		boolean isPasswordValid = validatePassword(authRequest.getPassword());
@@ -92,12 +93,20 @@ public class ValidatingService {
 		}
 	}
 	
-	public void validateIncomingPurchaseRequest(BookingRequestDto purchaseRequest) throws ApiBadRequestException {
-		boolean isAssetIdValid = purchaseRequest.getAssetId() > 0;
-		boolean isTimestampToday = Formatting.isTimestampToday(purchaseRequest.getTimeslot());
+	public void validateIncomingPurchaseRequest(PurchaseRequestDto purchaseRequest) throws ApiBadRequestException {
+		boolean paymentFlagVal = purchaseRequest.getIsPayingWithLoyaltyPoints();
 		
-		if (!isAssetIdValid || !isTimestampToday) {
+		boolean isAssetIdValid = purchaseRequest.getAssetId() > 0;
+		boolean isPaymentFlagValid = paymentFlagVal == true || paymentFlagVal == false;
+		
+		if (!isAssetIdValid || !isPaymentFlagValid) {
 			throwBadRequestError(String.format("The data received in the BookingRequestDto is of incorrect format. Form received=[%s]", purchaseRequest.toString()));
+		}
+	}
+
+	public void validatePurchaseLoyaltyOfferDto(PurchaseLoyaltyOfferDto purchaseLoyaltyOfferDto) throws ApiBadRequestException {
+		if (purchaseLoyaltyOfferDto.getLoyaltyOfferId() <= 0) {
+			throwBadRequestError(String.format("The data received in the PurchaseLoyaltyOfferDto is of incorrect format. Form received=[%s]", purchaseLoyaltyOfferDto.toString()));
 		}
 	}
 	

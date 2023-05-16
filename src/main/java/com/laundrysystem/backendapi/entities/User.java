@@ -59,6 +59,9 @@ public class User implements Serializable {
 
 	@Column(name = "password_reset_valid_until")
 	private Timestamp passwordResetValidUntil;
+
+	@Column(name = "loyalty_points")
+	private int loyaltyPoints;
 	
 	@OneToMany(mappedBy = "user", cascade = {CascadeType.PERSIST, CascadeType.MERGE,
 		CascadeType.DETACH, CascadeType.REFRESH})
@@ -71,6 +74,10 @@ public class User implements Serializable {
 	@OneToMany(mappedBy = "user", cascade = {CascadeType.PERSIST, CascadeType.MERGE,
 		CascadeType.DETACH, CascadeType.REFRESH})
 	private List<Purchase> purchases;
+
+	@OneToMany(mappedBy = "user", cascade = {CascadeType.PERSIST, CascadeType.MERGE,
+		CascadeType.DETACH, CascadeType.REFRESH})
+	private List<LoyaltyOfferPurchase> loyaltyOfferPurchases;
 	
 	@OneToMany(mappedBy = "user", cascade = {CascadeType.PERSIST, CascadeType.MERGE,
 		CascadeType.DETACH, CascadeType.REFRESH})
@@ -102,8 +109,8 @@ public class User implements Serializable {
 	}
 
 	public User(int id, Timestamp createdDate, String username, String password, short role, String name, String surname,
-		String jwt, String email, String countryDialCode, String mobileNumber, String passwordResetToken, Timestamp passwordResetValidUntil,
-		List<PaymentCard> paymentCards, List<Booking> bookings, List<Purchase> purchases, List<Tenancy> tenancies) {
+		String jwt, String email, String countryDialCode, String mobileNumber, String passwordResetToken, Timestamp passwordResetValidUntil, int loyaltyPoints,
+		List<PaymentCard> paymentCards, List<Booking> bookings, List<Purchase> purchases, List<LoyaltyOfferPurchase> loyaltyOfferPurchases, List<Tenancy> tenancies) {
 		super();
 		this.id = id;
 		this.createdDate = createdDate;
@@ -118,9 +125,11 @@ public class User implements Serializable {
 		this.mobileNumber = mobileNumber;
 		this.passwordResetToken = passwordResetToken;
 		this.passwordResetValidUntil = passwordResetValidUntil;
+		this.loyaltyPoints = loyaltyPoints;
 		this.paymentCards = paymentCards;
 		this.bookings = bookings;
 		this.purchases = purchases;
+		this.loyaltyOfferPurchases = loyaltyOfferPurchases;
 		this.tenancies = tenancies;
 	}
 
@@ -229,6 +238,14 @@ public class User implements Serializable {
 		this.passwordResetValidUntil = passwordResetValidUntil;
 	}
 
+	public int getLoyaltyPoints() {
+		return loyaltyPoints;
+	}
+
+	public void setLoyaltyPoints(int loyaltyPoints) {
+		this.loyaltyPoints = loyaltyPoints;
+	}
+
 	public List<PaymentCard> getPaymentCards() {
 		return paymentCards;
 	}
@@ -253,6 +270,14 @@ public class User implements Serializable {
 		this.purchases = purchases;
 	}
 
+	public List<LoyaltyOfferPurchase> getLoyaltyOfferPurchases() {
+		return loyaltyOfferPurchases;
+	}
+
+	public void setLoyaltyOfferPurchases(List<LoyaltyOfferPurchase> loyaltyOfferPurchases) {
+		this.loyaltyOfferPurchases = loyaltyOfferPurchases;
+	}
+
 	public List<Tenancy> getTenancies() {
 		return tenancies;
 	}
@@ -274,6 +299,7 @@ public class User implements Serializable {
 		return "User [id=" + id + ", createdDate=" + createdDate + ", username=" + username + ", password=" + password
 				+ ", role=" + role + ", jwt=" + jwt + ", name=" + name + ", surname=" + surname + ", email=" + email
 				+ ", countryDialCode=" + countryDialCode + ", mobileNumber=" + mobileNumber 
-				+ ", passwordResetToken=" + passwordResetToken + ", passwordResetValidUntil=" + passwordResetValidUntil + "]";
+				+ ", passwordResetToken=" + passwordResetToken + ", passwordResetValidUntil=" + passwordResetValidUntil
+				+ ", loyaltyPoints=" + loyaltyPoints + "]";
 	}
 }

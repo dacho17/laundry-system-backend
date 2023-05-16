@@ -74,9 +74,10 @@ public class UserService implements IUserService  {
 		
 		UserDetailsHelper userDetails = (UserDetailsHelper) authentication.getPrincipal();
 		
+		User loggedInUser;
 		try {
 			logger.info(String.format("Logging in with the user [username=%s].", loginRequest.getUsername()));
-			userRepository.setUserJwt(userDetails.getId(), jwt);
+			loggedInUser = userRepository.setUserJwt(userDetails.getId(), jwt);
 		} catch (Exception exc) {
 			logger.error(String.format("An error occurred while logging in with the user [username=%s]",
 					loginRequest.getUsername(), exc.getStackTrace().toString()));
@@ -85,9 +86,10 @@ public class UserService implements IUserService  {
 		
 		logger.info(String.format("Returning the login response carrying JWT token for the user with [username=%s].", userDetails.getUsername()));
 		return new UserDto(
-			userDetails.getUsername(),
-			UserRole.getRole(userDetails.getRole()),
-			jwt
+			loggedInUser.getUsername(),
+			UserRole.getRole(loggedInUser.getRole()),
+			loggedInUser.getLoyaltyPoints(),
+			loggedInUser.getJwt()
 		);
 	}
 
