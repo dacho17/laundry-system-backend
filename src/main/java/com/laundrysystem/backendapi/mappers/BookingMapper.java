@@ -21,7 +21,7 @@ public class BookingMapper {
 
 	public static ActivityHistoryEntryDto toActivityHistoryEntry(Booking booking) {
 		return new ActivityHistoryEntryDto(
-			Formatting.timestampToDateStr(booking.getCreatedDate()),
+			booking.getCreatedDate(),
 			ActivityHistoryEntryType.ASSET_BOOKING,
 			LaundryAssetType.getType(booking.getLaundryAsset().getAssetType()),
 			booking.getTimeslot(),

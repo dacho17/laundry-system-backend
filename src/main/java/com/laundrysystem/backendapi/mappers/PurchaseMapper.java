@@ -31,7 +31,7 @@ public class PurchaseMapper {
 	public static ActivityHistoryEntryDto toActivityHistoryEntry(Purchase purchase) {
 		if (purchase.getPaymentCard() != null) {	// purchase made using cash
 			return new ActivityHistoryEntryDto(
-				Formatting.timestampToDateStr(purchase.getCreatedDate()),
+				purchase.getCreatedDate(),
 				ActivityHistoryEntryType.ASSET_PURCHASE,
 				purchase.getAmountPaid().doubleValue(),
 				purchase.getPaidInCurrency(),
@@ -42,7 +42,7 @@ public class PurchaseMapper {
 		}
 
 		return new ActivityHistoryEntryDto(
-			Formatting.timestampToDateStr(purchase.getCreatedDate()),
+			purchase.getCreatedDate(),
 			ActivityHistoryEntryType.ASSET_PURCHASE,
 			purchase.getLoyaltyPointsUsed(),
 			LaundryAssetType.getType(purchase.getLaundryAsset().getAssetType()),

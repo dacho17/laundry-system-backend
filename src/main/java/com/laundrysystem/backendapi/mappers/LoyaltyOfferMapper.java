@@ -5,7 +5,6 @@ import com.laundrysystem.backendapi.dtos.LoyaltyOfferDto;
 import com.laundrysystem.backendapi.entities.LoyaltyOffer;
 import com.laundrysystem.backendapi.entities.LoyaltyOfferPurchase;
 import com.laundrysystem.backendapi.enums.ActivityHistoryEntryType;
-import com.laundrysystem.backendapi.utils.Formatting;
 
 public class LoyaltyOfferMapper {
     public static LoyaltyOfferDto toDTO(LoyaltyOffer loyaltyOffer) {
@@ -16,7 +15,7 @@ public class LoyaltyOfferMapper {
     public static ActivityHistoryEntryDto toActivityHistoryEntry(LoyaltyOfferPurchase loyaltyOfferPurchase) {
       LoyaltyOffer loyaltyOffer = loyaltyOfferPurchase.getLoyaltyOffer();
       return new ActivityHistoryEntryDto(
-        Formatting.timestampToDateStr(loyaltyOfferPurchase.getCreatedDate()),
+        loyaltyOfferPurchase.getCreatedDate(),
         ActivityHistoryEntryType.OFFER_PURCHASE,
         loyaltyOffer.getPrice(),
         loyaltyOffer.getCurrency(),

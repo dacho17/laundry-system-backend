@@ -6,7 +6,7 @@ import com.laundrysystem.backendapi.enums.ActivityHistoryEntryType;
 import com.laundrysystem.backendapi.enums.LaundryAssetType;
 
 public class ActivityHistoryEntryDto {
-    private String timeOfActivity;
+    private Timestamp timeOfActivity;
     private ActivityHistoryEntryType activityType;
     private double paidAmount;
     private String currency;
@@ -20,7 +20,7 @@ public class ActivityHistoryEntryDto {
     public ActivityHistoryEntryDto() {}
 
     // constructor for a booking activity
-    public ActivityHistoryEntryDto(String timeOfActivity, ActivityHistoryEntryType activityType, LaundryAssetType assetType,
+    public ActivityHistoryEntryDto(Timestamp timeOfActivity, ActivityHistoryEntryType activityType, LaundryAssetType assetType,
         Timestamp chosenTimeslot, String assetName) {
             this.timeOfActivity = timeOfActivity;
             this.activityType = activityType;
@@ -30,7 +30,7 @@ public class ActivityHistoryEntryDto {
     }
 
     // constructor for a purchase of machine in currency
-    public ActivityHistoryEntryDto(String timeOfActivity, ActivityHistoryEntryType activityType, double paidAmount, String currency,
+    public ActivityHistoryEntryDto(Timestamp timeOfActivity, ActivityHistoryEntryType activityType, double paidAmount, String currency,
         LaundryAssetType assetType, Timestamp chosenTimeslot, String assetName) {
             this.timeOfActivity = timeOfActivity;
             this.activityType = activityType;
@@ -42,7 +42,7 @@ public class ActivityHistoryEntryDto {
     }
 
     // constuctor for a purchase of machine using loyalty points
-    public ActivityHistoryEntryDto(String timeOfActivity, ActivityHistoryEntryType activityType, int loyaltyPointsUsed,
+    public ActivityHistoryEntryDto(Timestamp timeOfActivity, ActivityHistoryEntryType activityType, int loyaltyPointsUsed,
         LaundryAssetType assetType, Timestamp chosenTimeslot, String assetName) {
             this.timeOfActivity = timeOfActivity;
             this.activityType = activityType;
@@ -53,7 +53,7 @@ public class ActivityHistoryEntryDto {
     }
 
     // constructor for a purchase of loyalty offer
-    public ActivityHistoryEntryDto(String timeOfActivity, ActivityHistoryEntryType activityType, double paidAmount, String currency,
+    public ActivityHistoryEntryDto(Timestamp timeOfActivity, ActivityHistoryEntryType activityType, double paidAmount, String currency,
         String offerName, int loyaltyPointsPurchased) {
             this.timeOfActivity = timeOfActivity;
             this.activityType = activityType;
@@ -63,11 +63,11 @@ public class ActivityHistoryEntryDto {
             this.loyaltyPointsPurchased = loyaltyPointsPurchased;
     }
 
-    public String getTimeOfActivity() {
+    public Timestamp getTimeOfActivity() {
         return timeOfActivity;
     }
 
-    public void setTimeOfActivity(String timeOfActivity) {
+    public void setTimeOfActivity(Timestamp timeOfActivity) {
         this.timeOfActivity = timeOfActivity;
     }
 
