@@ -162,7 +162,7 @@ public class UserService implements IUserService  {
 			throw new DbException();
 		}
 
-		EmailDto emailDto = emailService.generatePasswordResetEmail(email, user.getPasswordResetToken());
+		EmailDto emailDto = emailService.generatePasswordResetEmail(email, user.getPasswordResetToken(), user.getUsername());
 		emailService.sendSimpleMail(emailDto);
 		
 		return PASSWORD_EMAIL_SENT;

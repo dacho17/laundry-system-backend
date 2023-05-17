@@ -17,7 +17,7 @@ import com.laundrysystem.backendapi.services.interfaces.IEmailService;
 public class EmailService implements IEmailService {
     private static final Logger logger = LoggerFactory.getLogger(EmailService.class);
     private static final String EMAIL_SUBJECT = "Password Reset Request";
-    private static final String EMAIL_CONTENT = "You have requested password reset.\n\nAccess the following link to reset your password:\n%s/auth/reset-password?passwordResetToken=%s\n\nThe link will be active for the next 30 minutes.";
+    private static final String EMAIL_CONTENT = "You have requested password reset for user %s.\n\nAccess the following link to reset your password:\n%s/auth/reset-password?passwordResetToken=%s\n\nThe link will be active for the next 30 minutes.";
     
     @Autowired
     private JavaMailSender javaMailSender;
@@ -47,8 +47,8 @@ public class EmailService implements IEmailService {
         }
     }
 
-    public EmailDto generatePasswordResetEmail(String email, String passwordResetToken) {
-        String emailContent = String.format(EMAIL_CONTENT, clientUrl, passwordResetToken);
+    public EmailDto generatePasswordResetEmail(String email, String passwordResetToken, String username) {
+        String emailContent = String.format(EMAIL_CONTENT, username, clientUrl, passwordResetToken);
         return new EmailDto(email, EMAIL_SUBJECT, emailContent);
     }
 }
